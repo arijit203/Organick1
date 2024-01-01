@@ -10,6 +10,7 @@ from flask_wtf.csrf import generate_csrf
 from functools import wraps
 import matplotlib
 matplotlib.use('Agg')
+from flask_wtf.csrf import CSRFProtect
 import matplotlib.pyplot as plt
 
 
@@ -20,11 +21,11 @@ from flask_login import UserMixin, login_user,LoginManager, login_required, logo
 
 app=Flask(__name__)
 
-app.config['SQLALCHEMY_DATABASE_URI']='sqlite:///C:/Users/ariji/Desktop/Grocery_App_Final/Project_Root_Folder/Code/instance/grocery.db'
+app.config['SQLALCHEMY_DATABASE_URI']='sqlite:///C:/Users/ariji/Desktop/GROC/instance/grocery.db'
 app.config['SECRET_KEY']="my secret key"
 
 db=SQLAlchemy(app)
-
+csrf = CSRFProtect(app)
 
 #Flask Login Stuff
 login_manager=LoginManager()
@@ -62,14 +63,46 @@ def load_user(user_id):
 
 
 
-@app.route('/')
+@app.route('/index')
 def primary():
-    return render_template('index.html')
+    form=UserForm()
+    return render_template('index.html',form=form)
+
+@app.route('/about')
+def about():
+    return render_template('about.html')
+
+@app.route('/shop')
+def shop():
+    # Access form information from the URL parameters
+    form=UserForm()
+    name = request.args.get('name')
+    username = request.args.get('username')
+    email = request.args.get('email')
+
+    # Render the shop.html template with the form information
+    return render_template('shop.html', name=name, form=form,username=username, email=email)
+
+@app.route('/portfolio')
+def portfolio():
+    return render_template('portfolio.html')
+
+@app.route('/blog')
+def blog():
+    return render_template('blog.html')
+
+@app.route('/contact')
+def contact():
+    return render_template('contact.html')
+
+
+
+
 
 
  
 class LoginForm(FlaskForm):
-    username=StringField("Username",validators=[DataRequired()])
+    email=StringField("Email",validators=[DataRequired()])
     password_hash=PasswordField("Password",validators=[DataRequired()])
     submit=SubmitField("Login")
 
@@ -80,8 +113,7 @@ class UserForm(FlaskForm):
     email=StringField("Email",validators=[DataRequired()])
     password_hash=PasswordField('Password',validators=[DataRequired(),EqualTo('password_hash2',message='Passwords Must Match!')])
     password_hash2=PasswordField('Confirm Password',validators=[DataRequired()])
-    submit=SubmitField("Submit")
-
+    submit=SubmitField("Sign Up")
 
 @app.route('/user_register', methods=['GET', 'POST'])
 def add_user():
@@ -93,6 +125,7 @@ def add_user():
         if existing_user:
             flash("Username is already taken. Please choose a different username.")
             return render_template("user_register.html", name=name, form=form)
+        
         user = Users.query.filter_by(email=form.email.data).first()
 
         if user is None:
@@ -104,7 +137,7 @@ def add_user():
             db.session.add(user)
             db.session.commit()
             login_user(user)
-            return redirect(url_for('user_dashboard',username=form.username.data))
+            return redirect(url_for('shop',username=form.username.data))
         else:
             flash("Email is already registered. Please use a different email.")
             return render_template("user_register.html", username=form.username.data, form=form, our_users=existing_user,name=name)
@@ -116,6 +149,7 @@ def add_user():
 
     our_users = Users.query.order_by(Users.date_added)
     return render_template("user_register.html", name=name, form=form, our_users=our_users,username=username)
+
 
 def user_profile_access_required(func):
     @wraps(func)
@@ -139,7 +173,7 @@ def user_profile_access_required(func):
 def login():
     form=LoginForm()
     if form.validate_on_submit():
-        user=Users.query.filter_by(username=form.username.data).first()
+        user=Users.query.filter_by(email=form.email.data).first()
         
         if user:
             #check the hash
@@ -147,7 +181,7 @@ def login():
             if check_password_hash(user.password_hash,form.password_hash.data):
                 login_user(user) #creates the session
                 session['is_user']=True
-                return redirect(url_for('user_dashboard',username=form.username.data))
+                return redirect(url_for('shop',email=form.email.data))
 
             else:
                 flash('Wrong Password - Try Again!!')    
@@ -457,7 +491,7 @@ def user_logout():
     session['is_user']=False
     session.clear()
     flash("You have been Logged Out!  Thanks for Stopping By...")
-    return redirect(url_for('login'))
+    return redirect(url_for('shop'))
 
 #####################################################################################################################################
 

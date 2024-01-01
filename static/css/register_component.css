@@ -1,0 +1,54 @@
+.signup__bg {
+    background-image: url(../images/Step.jpg);
+    height: 97vh;
+    background-position: center;
+    background-size: cover;
+    background-repeat: no-repeat;
+    overflow-x: hidden;
+    margin-top: 0.7rem;
+    position: relative; /* Add position relative to the container */
+}
+
+.text-overlay {
+    position: absolute;
+    bottom: 0; /* Align to the bottom */
+    right: 0; /* Align to the right */
+    padding: 20px; /* Optional padding for better visibility */
+    color: white;
+    text-align: right;
+}
+
+.text-overlay h1 {
+    font-size: 3em;
+}
+
+.text-overlay p {
+    font-size: 1.5em;
+}
+
+
+.signup-profile-pic__container {
+    width: 100px;
+    height: 100px;
+    margin: 0 auto;
+    position: relative;
+}
+
+.signup-profile-pic {
+    width: 100px;
+    border-radius: 50%;
+    border: 2px solid gray;
+    object-fit: cover;
+    height: 100px;
+}
+
+.add-picture-icon {
+    position: absolute;
+    bottom: 0;
+    right: 10px;
+    color: green;
+    background: white;
+    cursor: pointer;
+    z-index: 99;
+}
+

@@ -5,26 +5,115 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Shop &mdash; Grocery Website</title>
     <!-- Link Swiper's CSS -->
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
-
-    <link rel="stylesheet" href="./css/styles.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="static/css/styles.css" />
+    <!-- <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">   -->
   </head>
   <body style="background-color: var(--color-grey)">
+    {% for message in get_flashed_messages() %}
+    <div class="alert alert-secondary alert-dismissible fade show" role="alert">
+        <strong>{{message}}</strong> 
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      </div>
+        
+    {% endfor %}
+
     <nav class="nav">
       <div class="container nav_container">
         <div class="logo_box">
-          <div class="logo_box"><img src="./images/icon/Logo.svg" alt="" class="logo"/></div>
+          <div class="logo_box"><img src="static/images/icon/Logo.svg" alt="" class="logo"/></div>
         </div>
         <ul class="nav_list">
-          <li class="nav_item"><a href="./index.html" class="nav_link">Home</a></li>
-          <li class="nav_item"><a href="./about.html" class="nav_link">About</a></li>
-          <li class="nav_item"><a href="./shop.html" class="nav_link">Shop</a></li>
-          <li class="nav_item"><a href="./portfolio.html" class="nav_link">Projects</a></li>
-          <li class="nav_item"><a href="./blog.html" class="nav_link">News</a></li>
-          <li class="nav_item"><a href="./contact.html" class="nav_link">Contact Us</a></li>
+          <li class="nav_item"><a href="index" class="nav_link">Home</a></li>
+          <li class="nav_item"><a href="about" class="nav_link">About</a></li>
+          <li class="nav_item"><a href="shop" class="nav_link">Shop</a></li>
+          <li class="nav_item"><a href="portfolio" class="nav_link">Projects</a></li>
+          <li class="nav_item"><a href="blog" class="nav_link">News</a></li>
+          <li class="nav_item"><a href="contact'" class="nav_link">Contact Us</a></li>
         </ul>
+        <div class="nav_list1">
+          <div class="user_button" id="user-btn">
+            <img src="static/images/icon/user.png" alt="User" class="user_icon" />
+          </div>
+          <div class="user_button" id="cart-btn">
+            <img src="static/images/icon/shopping-bag-icon.png" alt="Cart" class="user_icon" />
+          </div>
+          <div class="user_button fas" id="search-btn" >
+            <img src="static/images/icon/search.png" alt="search-option" class="user_icon" />
+          </div>
+          <form action="" class="search-form">
+            <input type="search" placeholder="Search Here..." id="search-box"></input>
+            <label for="search-box" class="fas fa-search"></label>
+          </form>
+        </div>
+        <div class="shopping-cart">
+          
+          <div class="box">
+            <i class="fas fa-times"></i>
+              <img clas="imi" src="static/images/p-2.png" alt="">
+              <div class="content">
+                <h3>organic food</h3>
+                <span class="quantity">1</span>  
+                <span class="multiply">x</span>  
+                <span class="price">$18.99</span>  
+              </div>
+            
+          </div>
+          <div class="box">
+            <i class="fas fa-times"> </i>
+              <img clas="imi" src="static/images/p-4.png" alt="">
+              <div class="content">
+                <h3>organic food</h3>
+                <span class="quantity">1</span>  
+                <span class="multiply">x</span>  
+                <span class="price">$18.99</span>  
+              </div>
+            
+          </div>
+          <div class="box">
+            <i class="fas fa-times"></i>
+              <img clas="imi" src="static/images/p-7.png" alt="">
+              <div class="content">
+                <h3>organic food</h3>
+                <span class="quantity">1</span>  
+                <span class="multiply">x</span>  
+                <span class="price">$18.99</span>  
+              </div>
+            
+          </div>
+          <h3 class="total" > total : <span>$56.97</span></h3>
+            <a href="#" class="btn"> checkout cart</a>
+       
+        
+        </div>
+        <form method="POST" action="user_login"  class="login-form">
+          {% if current_user.is_authenticated %}
+              <h3>Welcome, {{ current_user.username }}!</h3>
+              <!-- Display other user information as needed -->
+      
+              <a href="{{ url_for('user_logout') }}" class="btn">Logout</a>
+          {% else %}
+              {{ form.csrf_token }}
+              <h3>Login Form</h3>
+              {{ form.email(class="box", placeholder="Enter email", required=true) }}
+              {{ form.password_hash(class="box", placeholder="Enter Password", required=true) }}
+      
+              <div class="remember">
+                  <input type="checkbox" name="" id="remember-me">
+                  <label for='remember-me'>Remember me</label>
+              </div>
+              
+              <button type="submit" class="btn">Login Now</button>
+              <p>Forget password? <a href="#">Click here</a></p>
+              <p>Don't have an account? <a href="user_register">Create one</a></p>
+          {% endif %}
+      </form>
+      
+      
       </div>
     </nav>
+      
 
     <!-- 3rd page -->
     <header class="mini_header shop_header">
@@ -39,141 +128,141 @@
         <div class="container">
           <div class="section_header_center">
             <h5 class="header_section_title_2">Categories</h5>
-            <h2 class="header_section_title_1">Out Products</h2>
+            <h2 class="header_section_title_1">Our Products</h2>
           </div>
           <div class="products">
             <div class="product_card">
-              <img src="./images/p-1.png" alt="" class="product_img" />
+              <img src="static/images/p-1.png" alt="" class="product_img" />
               <p class="product_tag">Vegetable</p>
               <div class="product_body">
                 <h3 class="product_title">Calabrese Broccoli</h3>
                 <div class="product_footer">
                   <h4 class="product_price">Rs. 14.00/kg</h4>
                   <div class="product_rating">
-                    <img src="./images/icon/star.png" alt="" class="star">
-                    <img src="./images/icon/star.png" alt="" class="star">
-                    <img src="./images/icon/star.png" alt="" class="star">
-                    <img src="./images/icon/star.png" alt="" class="star">
-                    <img src="./images/icon/star.png" alt="" class="star">
+                    <img src="static/images/icon/star.png" alt="" class="star">
+                    <img src="static/images/icon/star.png" alt="" class="star">
+                    <img src="static/images/icon/star.png" alt="" class="star">
+                    <img src="static/images/icon/star.png" alt="" class="star">
+                    <img src="static/images/icon/star.png" alt="" class="star">
                   </div>
                 </div>
               </div>
             </div>
             <div class="product_card">
-              <img src="./images/p-1.png" alt="" class="product_img">
+              <img src="static/images/p-1.png" alt="" class="product_img">
               <p class="product_tag">Vegetable</p>
               <div class="product_body">
                 <h3 class="product_title">Calabrese Broccoli</h3>
                 <div class="product_footer">
                   <h4 class="product_price">Rs. 14.00/kg</h4>
                   <div class="product_rating">
-                    <img src="./images/icon/star.png" alt="" class="star">
-                    <img src="./images/icon/star.png" alt="" class="star">
-                    <img src="./images/icon/star.png" alt="" class="star">
-                    <img src="./images/icon/star.png" alt="" class="star">
-                    <img src="./images/icon/star.png" alt="" class="star">
+                    <img src="static/images/icon/star.png" alt="" class="star">
+                    <img src="static/images/icon/star.png" alt="" class="star">
+                    <img src="static/images/icon/star.png" alt="" class="star">
+                    <img src="static/images/icon/star.png" alt="" class="star">
+                    <img src="static/images/icon/star.png" alt="" class="star">
                   </div>
                 </div>
               </div>
             </div>
             <div class="product_card">
-              <img src="./images/p-1.png" alt="" class="product_img">
+              <img src="static/images/p-1.png" alt="" class="product_img">
               <p class="product_tag">Vegetable</p>
               <div class="product_body">
                 <h3 class="product_title">Calabrese Broccoli</h3>
                 <div class="product_footer">
                   <h4 class="product_price">Rs. 14.00/kg</h4>
                   <div class="product_rating">
-                    <img src="./images/icon/star.png" alt="" class="star">
-                    <img src="./images/icon/star.png" alt="" class="star">
-                    <img src="./images/icon/star.png" alt="" class="star">
-                    <img src="./images/icon/star.png" alt="" class="star">
-                    <img src="./images/icon/star.png" alt="" class="star">
+                    <img src="static/images/icon/star.png" alt="" class="star">
+                    <img src="static/images/icon/star.png" alt="" class="star">
+                    <img src="static/images/icon/star.png" alt="" class="star">
+                    <img src="static/images/icon/star.png" alt="" class="star">
+                    <img src="static/images/icon/star.png" alt="" class="star">
                   </div>
                 </div>
               </div>
             </div>
             <div class="product_card">
-              <img src="./images/p-1.png" alt="" class="product_img">
+              <img src="static/images/p-1.png" alt="" class="product_img">
               <p class="product_tag">Vegetable</p>
               <div class="product_body">
                 <h3 class="product_title">Calabrese Broccoli</h3>
                 <div class="product_footer">
                   <h4 class="product_price">Rs. 14.00/kg</h4>
                   <div class="product_rating">
-                    <img src="./images/icon/star.png" alt="" class="star">
-                    <img src="./images/icon/star.png" alt="" class="star">
-                    <img src="./images/icon/star.png" alt="" class="star">
-                    <img src="./images/icon/star.png" alt="" class="star">
-                    <img src="./images/icon/star.png" alt="" class="star">
+                    <img src="static/images/icon/star.png" alt="" class="star">
+                    <img src="static/images/icon/star.png" alt="" class="star">
+                    <img src="static/images/icon/star.png" alt="" class="star">
+                    <img src="static/images/icon/star.png" alt="" class="star">
+                    <img src="static/images/icon/star.png" alt="" class="star">
                   </div>
                 </div>
               </div>
             </div>
             <div class="product_card">
-              <img src="./images/p-1.png" alt="" class="product_img">
+              <img src="static/images/p-1.png" alt="" class="product_img">
               <p class="product_tag">Vegetable</p>
               <div class="product_body">
                 <h3 class="product_title">Calabrese Broccoli</h3>
                 <div class="product_footer">
                   <h4 class="product_price">Rs. 14.00/kg</h4>
                   <div class="product_rating">
-                    <img src="./images/icon/star.png" alt="" class="star">
-                    <img src="./images/icon/star.png" alt="" class="star">
-                    <img src="./images/icon/star.png" alt="" class="star">
-                    <img src="./images/icon/star.png" alt="" class="star">
-                    <img src="./images/icon/star.png" alt="" class="star">
+                    <img src="static/images/icon/star.png" alt="" class="star">
+                    <img src="static/images/icon/star.png" alt="" class="star">
+                    <img src="static/images/icon/star.png" alt="" class="star">
+                    <img src="static/images/icon/star.png" alt="" class="star">
+                    <img src="static/images/icon/star.png" alt="" class="star">
                   </div>
                 </div>
               </div>
             </div>
             <div class="product_card">
-              <img src="./images/p-1.png" alt="" class="product_img">
+              <img src="static/images/p-1.png" alt="" class="product_img">
               <p class="product_tag">Vegetable</p>
               <div class="product_body">
                 <h3 class="product_title">Calabrese Broccoli</h3>
                 <div class="product_footer">
                   <h4 class="product_price">Rs. 14.00/kg</h4>
                   <div class="product_rating">
-                    <img src="./images/icon/star.png" alt="" class="star">
-                    <img src="./images/icon/star.png" alt="" class="star">
-                    <img src="./images/icon/star.png" alt="" class="star">
-                    <img src="./images/icon/star.png" alt="" class="star">
-                    <img src="./images/icon/star.png" alt="" class="star">
+                    <img src="static/images/icon/star.png" alt="" class="star">
+                    <img src="static/images/icon/star.png" alt="" class="star">
+                    <img src="static/images/icon/star.png" alt="" class="star">
+                    <img src="static/images/icon/star.png" alt="" class="star">
+                    <img src="static/images/icon/star.png" alt="" class="star">
                   </div>
                 </div>
               </div>
             </div>
             <div class="product_card">
-              <img src="./images/p-1.png" alt="" class="product_img">
+              <img src="static/images/p-1.png" alt="" class="product_img">
               <p class="product_tag">Vegetable</p>
               <div class="product_body">
                 <h3 class="product_title">Calabrese Broccoli</h3>
                 <div class="product_footer">
                   <h4 class="product_price">Rs. 14.00/kg</h4>
                   <div class="product_rating">
-                    <img src="./images/icon/star.png" alt="" class="star">
-                    <img src="./images/icon/star.png" alt="" class="star">
-                    <img src="./images/icon/star.png" alt="" class="star">
-                    <img src="./images/icon/star.png" alt="" class="star">
-                    <img src="./images/icon/star.png" alt="" class="star">
+                    <img src="static/images/icon/star.png" alt="" class="star">
+                    <img src="static/images/icon/star.png" alt="" class="star">
+                    <img src="static/images/icon/star.png" alt="" class="star">
+                    <img src="static/images/icon/star.png" alt="" class="star">
+                    <img src="static/images/icon/star.png" alt="" class="star">
                   </div>
                 </div>
               </div>
             </div>
             <div class="product_card">
-              <img src="./images/p-1.png" alt="" class="product_img">
+              <img src="static/images/p-1.png" alt="" class="product_img">
               <p class="product_tag">Vegetable</p>
               <div class="product_body">
                 <h3 class="product_title">Calabrese Broccoli</h3>
                 <div class="product_footer">
                   <h4 class="product_price">Rs. 14.00/kg</h4>
                   <div class="product_rating">
-                    <img src="./images/icon/star.png" alt="" class="star">
-                    <img src="./images/icon/star.png" alt="" class="star">
-                    <img src="./images/icon/star.png" alt="" class="star">
-                    <img src="./images/icon/star.png" alt="" class="star">
-                    <img src="./images/icon/star.png" alt="" class="star">
+                    <img src="static/images/icon/star.png" alt="" class="star">
+                    <img src="static/images/icon/star.png" alt="" class="star">
+                    <img src="static/images/icon/star.png" alt="" class="star">
+                    <img src="static/images/icon/star.png" alt="" class="star">
+                    <img src="static/images/icon/star.png" alt="" class="star">
                   </div>
                 </div>
               </div>
@@ -197,12 +286,28 @@
   <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
 
   <!-- Initialize Swiper -->
+  <!-- <script>
+    var swiper = new Swiper(".mySwiper", {
+      pagination: {
+        el: ".swiper-pagination",
+      },
+    });
+  </script> -->
+  <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+  <script src="static/script.js" lang="javascript"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
+
+  <!-- Initialize Swiper -->
   <script>
     var swiper = new Swiper(".mySwiper", {
       pagination: {
         el: ".swiper-pagination",
       },
     });
+    function toggleLoginBox() {
+      var loginBox = document.getElementById("loginBox");
+      loginBox.style.display = loginBox.style.display === "none" ? "block" : "none";
+    }
   </script>
   </body>
 </html>

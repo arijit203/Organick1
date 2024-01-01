@@ -87,6 +87,9 @@ section{
   padding: 0.5rem 1rem;
   color:var(--color-daark);
   font-weight: 500;
+  a{
+    color: black;
+  }
 }
 
 /* header */
