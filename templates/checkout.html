@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="/static/css/styles.css" />
+    <link rel="stylesheet" href="/static/css/checkout.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">    <!-- Include any additional CSS files here -->
+
+    <style>
+    #addressBox {
+        width: 292px;
+        margin-right: 20px;
+    }
+
+    #cartDetails {
+        display: flex;
+        justify-content: space-between;
+    }
+
+    #cartDetails .item {
+        flex: 1;
+        margin-right: 20px;
+    }
+
+    button {
+        background-color: #4CAF50;
+        color: white;
+        border: none;
+        padding: 10px;
+        cursor: pointer;
+    }</style>
+</head>
+<body>
+
+<!-- Header Section with Logo -->
+<nav class="nav">
+    <div class="container nav_container">
+      <div class="logo_box">
+        <div class="logo_box"><img src="/static/images/icon/Logo.svg" alt="" class="logo"/></div>
+
+        </div>
+    </div>
+    </div>
+</nav>
+
+
+
+<!-- Payment Method Selection -->
+<div style="display:flex;padding-top:20px;" >
+<div class="payment-container">
+    <h1 style="padding-bottom: 7px;">Select Payment Method</h1>
+
+    <!-- Wallets -->
+    <div class="payment-option-wrapper" value="Payment made through Wallet" >
+        <div class="payment-option">
+            <h3>Wallets <div class="dropdown-icon" style="margin-left: 530px;"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-down" viewBox="0 0 16 16">
+  <path fill-rule="evenodd" d="M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708"/>
+</svg></div></h3>
+        
+            
+            <div class="dropdown-content">
+                <!-- Wallet content here -->
+                <br>
+                <div class="sc-bke1zw-0 fIuLDK styles__StyledLayout-sc-asgmy8-1 eUpzmP">
+                    <div class="sc-bke1zw-1 styles__StyledLayoutItem-sc-asgmy8-2 eCAkpW">
+                        <div class="WalletTile__TileContainer-sc-1knsy62-0 kSNKZk">
+                            <div class="WalletTile__HeadContainer-sc-1knsy62-1 gcxFEi">
+                                <div height="2rem" width="2rem" class="sc-s1isp7-1 hZPUDj WalletTile__Logo-sc-1knsy62-2 iYNXIc">
+                                    <img class="jQwYOW" src="https://b.zmtcdn.com/payments/6e55971732ab66a2d528aac1e47569001688380478.png"></img>
+                                </div>
+                                <i><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-check-circle" viewBox="0 0 16 16">
+                                    <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14m0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16"/>
+                                    <path d="m10.97 4.97-.02.022-3.473 4.425-2.093-2.094a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-1.071-1.05"/>
+                                  </svg></i>
+                            </div>
+                            <div style="padding-left: 7px;">
+                                <p >Paytm</p>
+                                
+                                <p>LINK</p>
+                            </div>
+                            
+                        </div>
+                        
+                        
+                    </div>
+                    <div class="sc-bke1zw-1 styles__StyledLayoutItem-sc-asgmy8-2 eCAkpW">
+                        <div class="WalletTile__TileContainer-sc-1knsy62-0 kSNKZk">
+                            <div class="WalletTile__HeadContainer-sc-1knsy62-1 gcxFEi">
+                                <div height="2rem" width="2rem" class="sc-s1isp7-1 hZPUDj WalletTile__Logo-sc-1knsy62-2 iYNXIc">
+                                    <img class="jQwYOW" src="https://b.zmtcdn.com/payments/a759a08413ee3bf3183917f5a24172751688380614.png"></img>
+                                </div>
+                                <i><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-check-circle" viewBox="0 0 16 16">
+                                    <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14m0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16"/>
+                                    <path d="m10.97 4.97-.02.022-3.473 4.425-2.093-2.094a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-1.071-1.05"/>
+                                  </svg></i>
+                            </div>
+                            <div style="padding-left: 7px;">
+                                <p >Mobikwik</p>
+                                
+                                <p>LINK</p>
+                            </div>
+                            
+                        </div>
+                        
+                        
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Credit/Debit Cards -->
+    <div class="payment-option-wrapper" value="Payment made through Credit/Debit Card">
+    <div class="payment-option" id="cardsOption">
+        <div class="form-group">
+            <h3>Add Credit or Debit Cards<div class="dropdown-icon" style="margin-left: 350px;"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-down" viewBox="0 0 16 16">
+  <path fill-rule="evenodd" d="M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708"/>
+</svg></div></h3>
+            
+        </div>
+        <div class="dropdown-content" id="cardsDropdown">
+            <form>
+                <br>
+                <div class="AddCardTile__Container-sc-7w54x2-0 glagrd"><div class="AddCardTile__CardDetailsSection-sc-7w54x2-1 jRwvkU"><i class="sc-rbbb40-1 iFnyeo AddCardTile__CheckIcon-sc-7w54x2-3 kCWxSy" size="22" color="#119199"><svg xmlns="http://www.w3.org/2000/svg" fill="#119199" width="22" height="22" viewBox="0 0 20 20" aria-labelledby="icon-svg-title- icon-svg-desc-" role="img" class="sc-rbbb40-0 cvuzKA"><path d="M1.5 10C1.5 5.3125 5.3125 1.5 10 1.5C14.6875 1.5 18.5 5.3125 18.5 10C18.5 14.6875 14.6875 18.5 10 18.5C5.3125 18.5 1.5 14.6875 1.5 10ZM0 10C0 15.5 4.5 20 10 20C15.5 20 20 15.5 20 10C20 4.5 15.5 0 10 0C4.5 0 0 4.5 0 10ZM13.75 7.25L8.75 12.1875L6.25 9.75C5.9375 9.4375 5.5 9.4375 5.1875 9.75C4.875 10 4.875 10.5 5.1875 10.8125L8.1875 13.8125C8.3125 13.9375 8.5 14.0625 8.75 14.0625C8.9375 14.0625 9.125 14 9.25 13.8125L14.75 8.3125C15.0625 8 15.0625 7.5625 14.75 7.25C14.4375 6.9375 14 6.9375 13.75 7.25Z"></path></svg></i><div class="AddCardTile__ContentSection-sc-7w54x2-4 Xsdzp"><p class="sc-1hez2tp-0 AddCardTile__CardName-sc-7w54x2-2 iXVkST">Add Debit / Credit / ATM Card</p><div class="LogoRail__LogoRailSection-sc-1oaympr-0 eENJTD AddCardTile__LogoRailWrapper-sc-7w54x2-5 dqGnMj"><div height="2.5rem" width="4rem" class="sc-s1isp7-1 AFCcw LogoRail__CardLogo-sc-1oaympr-1 gkPcXq"><div src="" class="sc-s1isp7-3 cVOEqG"></div><img alt="card-image" src="https://b.zmtcdn.com/payments/card-logos/visa_v2.png" loading="lazy" class="sc-s1isp7-5 jQwYOW"></div><div height="2.5rem" width="4rem" class="sc-s1isp7-1 AFCcw LogoRail__CardLogo-sc-1oaympr-1 gkPcXq"><div src="" class="sc-s1isp7-3 cVOEqG"></div><img alt="card-image" src="https://b.zmtcdn.com/payments/card-logos/mastercard_v2.png" loading="lazy" class="sc-s1isp7-5 jQwYOW"></div><div height="2.5rem" width="4rem" class="sc-s1isp7-1 AFCcw LogoRail__CardLogo-sc-1oaympr-1 gkPcXq"><div src="" class="sc-s1isp7-3 cVOEqG"></div><img alt="card-image" src="https://b.zmtcdn.com/payments/card-logos/amex_v2.png" loading="lazy" class="sc-s1isp7-5 jQwYOW"></div><div height="2.5rem" width="4rem" class="sc-s1isp7-1 AFCcw LogoRail__CardLogo-sc-1oaympr-1 gkPcXq"><div src="" class="sc-s1isp7-3 cVOEqG"></div><img alt="card-image" src="https://b.zmtcdn.com/payments/card-logos/rupay_v2.png" loading="lazy" class="sc-s1isp7-5 jQwYOW"></div><div height="2.5rem" width="4rem" class="sc-s1isp7-1 AFCcw LogoRail__CardLogo-sc-1oaympr-1 gkPcXq"><div src="" class="sc-s1isp7-3 cVOEqG"></div><img alt="card-image" src="https://b.zmtcdn.com/payments/logos/a30393d22721bb8c560ffd8cc1d23d9b1694117849.png" loading="lazy" class="sc-s1isp7-5 jQwYOW"></div><div height="2.5rem" width="4rem" class="sc-s1isp7-1 AFCcw LogoRail__CardLogo-sc-1oaympr-1 gkPcXq"><div src="" class="sc-s1isp7-3 cVOEqG"></div><img alt="card-image" src="https://b.zmtcdn.com/payments/card-logos/diner_club_v2.png" loading="lazy" class="sc-s1isp7-5 jQwYOW"></div><div height="2.5rem" width="4rem" class="sc-s1isp7-1 AFCcw LogoRail__CardLogo-sc-1oaympr-1 gkPcXq"><div src="" class="sc-s1isp7-3 cVOEqG"></div><img alt="card-image" src="https://b.zmtcdn.com/payments/logos/card_v3.png" loading="lazy" class="sc-s1isp7-5 jQwYOW"></div></div>
+                <input type="text" name="" id="" placeholder="Name on Card">
+                <input type="text" name="" id="" placeholder="Card Number">
+                <input type="text"  placeholder="Expiry Date(MM/YY)">
+                <input type="text" name="" id="" placeholder="CVV">
+
+                <div class="LogoRail__LogoRailSection-sc-1oaympr-0 eENJTD AddCardTile__LogoRailWrapper-sc-7w54x2-5 dqGnMj"><div height="2.5rem" width="4rem" class="sc-s1isp7-1 AFCcw LogoRail__CardLogo-sc-1oaympr-1 gkPcXq"><div src="" class="sc-s1isp7-3 cVOEqG"></div><img alt="card-image" src="https://b.zmtcdn.com/web/paymnets/assets/c041a394b4e52bead147ac9c933b0e031567413096.png" loading="lazy" class="sc-s1isp7-5 jQwYOW"></div><div height="2.5rem" width="4rem" class="sc-s1isp7-1 AFCcw LogoRail__CardLogo-sc-1oaympr-1 gkPcXq"><div src="" class="sc-s1isp7-3 cVOEqG"></div><img alt="card-image" src="https://b.zmtcdn.com/web/paymnets/assets/0c22aba926507fa8aec8f4a148f6d4b51567413108.png" loading="lazy" class="sc-s1isp7-5 jQwYOW"></div></div></div></div></div>
+                <!-- Card Details Fields -->
+                
+        </div>
+    </div>
+</div>
+
+    <!-- Netbanking -->
+    <div class="payment-option-wrapper" value="Payment made through Netbanking">
+        <div class="payment-option" id="netbankingOption">
+            <h3>Netbanking <div class="dropdown-icon" style="margin-left: 490px;"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-down" viewBox="0 0 16 16">
+  <path fill-rule="evenodd" d="M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708"/>
+</svg></div></h3>
+            
+            <div class="dropdown-content" id="netbankingDropdown">
+                <input type="hidden" id="selectedNetbankingOption" name="selectedBankingOption" value="Payment made through Netbanking">
+                <br>
+                <div class="sc-bke1zw-0 fIuLDK styles__StyledLayout-sc-asgmy8-1 eUpzmP">
+                    <div class="sc-bke1zw-1 styles__StyledLayoutItem-sc-asgmy8-2 eCAkpW">
+                        <div class="WalletTile__TileContainer-sc-1knsy62-0 kSNKZk">
+                            <div class="WalletTile__HeadContainer-sc-1knsy62-1 gcxFEi">
+                                <div height="2rem" width="2rem" class="sc-s1isp7-1 hZPUDj WalletTile__Logo-sc-1knsy62-2 iYNXIc">
+                                    <img class="jQwYOW" src="https://b.zmtcdn.com/payments/bank-logos/a04b3632472aafbe683e6849b4b865b01662538671.png"></img>
+                                </div>
+                                <i><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-check-circle" viewBox="0 0 16 16">
+                                    <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14m0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16"/>
+                                    <path d="m10.97 4.97-.02.022-3.473 4.425-2.093-2.094a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-1.071-1.05"/>
+                                  </svg></i>
+                            </div>
+                            <div style="padding-left: 7px;">
+                                <p >HDFC</p>
+                                
+                                
+                            </div>
+                            
+                        </div>
+                        
+                        
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add new UPI ID -->
+    <div class="payment-option-wrapper" value="Payment through UPI">
+        <div class="payment-option" id="upiOption">
+            <h3>Add new UPI ID <div class="dropdown-icon" style="margin-left: 457px;"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-down" viewBox="0 0 16 16">
+  <path fill-rule="evenodd" d="M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708"/>
+</svg></div></h3>
+            
+            <div class="dropdown-content" id="upiDropdown">
+                <!-- Add UPI ID Form or Input Fields -->
+                <br>
+                <div class="AddUPITile__Container-sc-hdxyoc-0 dIQmYM"><div class="AddUPITile__FlexContainer-sc-hdxyoc-1 hcfQXr"><i class="sc-rbbb40-1 iFnyeo" size="22" color="#119199"><svg xmlns="http://www.w3.org/2000/svg" fill="#119199" width="22" height="22" viewBox="0 0 20 20" aria-labelledby="icon-svg-title- icon-svg-desc-" role="img" class="sc-rbbb40-0 cvuzKA"><path d="M1.5 10C1.5 5.3125 5.3125 1.5 10 1.5C14.6875 1.5 18.5 5.3125 18.5 10C18.5 14.6875 14.6875 18.5 10 18.5C5.3125 18.5 1.5 14.6875 1.5 10ZM0 10C0 15.5 4.5 20 10 20C15.5 20 20 15.5 20 10C20 4.5 15.5 0 10 0C4.5 0 0 4.5 0 10ZM13.75 7.25L8.75 12.1875L6.25 9.75C5.9375 9.4375 5.5 9.4375 5.1875 9.75C4.875 10 4.875 10.5 5.1875 10.8125L8.1875 13.8125C8.3125 13.9375 8.5 14.0625 8.75 14.0625C8.9375 14.0625 9.125 14 9.25 13.8125L14.75 8.3125C15.0625 8 15.0625 7.5625 14.75 7.25C14.4375 6.9375 14 6.9375 13.75 7.25Z"></path></svg></i><div class="AddUPITile__AddUPIFormContainer-sc-hdxyoc-4 kUAueP"><p class="sc-1hez2tp-0 AddUPITile__Heading-sc-hdxyoc-2 kCNCzB">Add new UPI</p><div class="LogoRail__LogoRailSection-sc-1wputwk-0 jZzEEw AddUPITile__LogoRailWrapper-sc-hdxyoc-3 eNvqei"><div height="3rem" width="6rem" class="sc-s1isp7-1 dvNLGv LogoRail__CardLogo-sc-1wputwk-1 crQVLk"><div src="" class="sc-s1isp7-3 cVOEqG"></div><img alt="card-image" src="https://b.zmtcdn.com/zpaykit/81b0d98cd17e3900a6f29aeeb78649281567742742.png" loading="lazy" class="sc-s1isp7-5 jQwYOW"></div><div height="3rem" width="6rem" class="sc-s1isp7-1 dvNLGv LogoRail__CardLogo-sc-1wputwk-1 crQVLk"><div src="" class="sc-s1isp7-3 cVOEqG"></div><img alt="card-image" src="https://b.zmtcdn.com/zpaykit/f52c90e85df90272a009580e23e410361567743087.png" loading="lazy" class="sc-s1isp7-5 jQwYOW"></div><div height="3rem" width="6rem" class="sc-s1isp7-1 dvNLGv LogoRail__CardLogo-sc-1wputwk-1 crQVLk"><div src="" class="sc-s1isp7-3 cVOEqG"></div><img alt="card-image" src="https://b.zmtcdn.com/zpaykit/cddd7915933e173e862363b300cb2e441567742836.png" loading="lazy" class="sc-s1isp7-5 jQwYOW"></div><div height="3rem" width="6rem" class="sc-s1isp7-1 dvNLGv LogoRail__CardLogo-sc-1wputwk-1 crQVLk"><div src="" class="sc-s1isp7-3 cVOEqG"></div><img alt="card-image" src="https://b.zmtcdn.com/zpaykit/af07d421bc6da0f623672f3044a882901567742922.png" loading="lazy" class="sc-s1isp7-5 jQwYOW"></div></div><div class="SingleInputField__Container-sc-yot5yr-0 gncHtH"><div class="SingleInputField__InputFieldContainer-sc-yot5yr-6 gWtEsS"><section label="example@upi" value="" class="sc-1yzxt5f-6 gXbCjv SingleInputField__InputField-sc-yot5yr-3 dCoMwL" color="white" type="text"><section width="100%" class="sc-1yzxt5f-4 ioJwpZ"><input type="text" width="100%" autocomplete="on" class="sc-1yzxt5f-9 bbrwhB" value="" placeholder="Example@upi"></section><div class="sc-1yzxt5f-5 QjbsL"></div></section></div><button class="sc-1kx5g6g-1 elxuhW SingleInputField__DesktopButton-sc-yot5yr-1 cfkcdr" role="button" tabindex="0" aria-disabled="false"><span tabindex="-1" class="sc-1kx5g6g-2 fTmdiz"><span class="sc-1kx5g6g-3 dkwpEa">Checkout</span></span></button>
+            </div><p class="sc-1hez2tp-0 AddUPITile__NoticeText-sc-hdxyoc-5 eJxykp">The UPI ID is in the format of name/phone number@bankname</p></div></div></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Cash -->
+    <div class="payment-option-wrapper" value="Pay on Delivery">
+        <div class="payment-option" id="cashOption">
+            <h3>Cash <div class="dropdown-icon" style="margin-left: 557px;"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-down" viewBox="0 0 16 16">
+  <path fill-rule="evenodd" d="M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708"/>
+</svg></div></h3>
+            <div class="dropdown-content" id="payLaterDropdown">
+                <!-- Add Pay Later Information or Form -->
+                <p style="color: rgb(105, 105, 105);
+            padding-top: 2rem;
+            max-height: 1000rem;
+            pointer-events: auto;
+            opacity: 1;">Please keep exact change handy to help us serve you better</p>
+            </div>
+            
+        </div>
+    </div>
+
+    <!-- Pay Later -->
+    <div class="payment-option-wrapper" value="Pay Later Method">
+        <div class="payment-option" id="payLaterOption">
+            <h3>Pay Later <div class="dropdown-icon" style="margin-left: 520px;"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-down" viewBox="0 0 16 16">
+  <path fill-rule="evenodd" d="M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708"/>
+</svg></div></h3>
+           
+            <div class="dropdown-content" id="payLaterDropdown">
+                <!-- Add Pay Later Information or Form -->
+            </div>
+        </div>
+    </div>
+</div>
+<div class="container" style="margin:0px;border: 1px solid #ccc;max-width: 336px;padding:0px;    height: fit-content;">
+    <div id="addressBox" style="padding:12px">
+        <h3 style="    font-size: 18px;
+font-weight: 500;
+    vertical-align: middle;">Delivery Address</h3>
+    <div style="margin-top: 6px; color: rgb(153, 153, 153); overflow-wrap: break-word;font-size: 14px;">
+        <span class="weight--semibold">
+            {{address.address_type}} : 
+        </span>
+         {{address.delivery_address}}
+    </div>
+        
+    </div>
+    <div class="containers__CartItemsContainer-sc-1hadpge-0 hPESYp" style="border-top: 1px solid #ccc">
+        <div style="padding-bottom: 12px;">
+            <div class="checkout-cart__box">
+                <span class="checkout-cart__title display--inline-block">My Cart</span>
+                <span class="float-right" data-test-id="no-of-items">
+                    {% if num == 1 %}
+                        {{ num }} item
+                    {% else %}
+                        {{ num }} items
+                    {% endif %}
+                </span>
+                <div class="clear"></div>
+            </div>
+        </div>
+        <div style="border-top:  1px solid #ccc;">
+            {% if cart_items %}
+            {% for cart_item,item,category in cart_items %}
+                <div class="checkout-cart__item">
+                    <div class="checkout-cart__item-count display--table-cell">{{ cart_item.quantity }}</div>
+                    <div class="checkout-cart__img-box display--table-cell">
+                        <div height="100%" width="100%" class="sc-gsnTZi foBTae">
+                            <img src="/static/images/items/{{ item.name|replace(' ', '_')|lower }}.png" alt="{{ item.name }}" class="sc-jSMfEi eXEZSy">
+                        </div>
+                    </div>
+                    <div class="checkout-cart__item-name-box vertical-align--top display--table-cell">
+                        <div class="checkout-cart__item-name" data-test-id="product-name">{{ item.name }}</div>
+                        <div class="checkout-cart__item-unit">
+                            {% if item.unit.split('/')[1] == 'kg' or  item.unit.split('/')[1] == 'kg'  %}
+                                    1 {{item.unit.split('/')[1]}}
+                                {% else %}
+                                     {{item.unit.split('/')[1]}}
+                                {% endif %}
+                        </div>
+                        <span class="checkout-cart__item-price weight--semibold" data-test-id="checkout-item-price">
+                            <span>
+                                ₹ {{ item.price }}
+                            </span>
+
+                        </span>
+                    </div>
+                    
+                </div>
+            {% endfor %}
+            {% else %}
+                <span> Cart is empty</span>
+
+            {% endif %}    
+            
+        </div>
+        <!-- <div class="a-padding-small cell-separator">
+            <hr class="a-spacing-none">
+        </div> -->
+        <div class="a-row order-summary" style="padding:10px">
+            <h3 class="a-spacing-base a-spacing-top-micro" style="padding-bottom: 4px;padding-top: 7px;">Order Summary</h3>
+            <table id="subtotals-marketplace-table" data-testid class="a-normal a-align-bottom a-spacing-none a-size-small">
+                <tbody>
+                    <tr data-testid class="small-line-height">
+                        <td>
+                            <span style="
+                            margin-right: 180px;
+                        "> Items Total : </span>
+                        </td>
+                        <td class="a-text-right aok-nowrap a-nowrap" >
+                            ₹<span id="t_price">{{total_price}}</span>
+                        </td>
+                    </tr>
+                    <tr data-testid class="small-line-height">
+                        <td>
+                            <span> Delivery Fee : </span>
+                        </td>
+                        <td class="a-text-right aok-nowrap a-nowrap">
+                            ₹29.0
+                        </td>
+                    </tr>
+                    <tr data-testid class="small-line-height" id="discountSection" style="display: none;">
+                        <td>
+                            <span style="padding-right:90px"> Discount (×<span id="coupon" style="display: none;"></span>) : </span>
+                        </td>
+                        <td class="a-text-right aok-nowrap a-nowrap">
+                            <span id="discountAmount"></span>
+                        </td>
+                    </tr>
+    
+                    <tr class="order-summary-grand-total">
+                        <td colspan="2" class="cell-separator">
+                            <hr aria-hidden="true" class="a-spacing-mini a-divider-normal">
+                        </td>
+                    </tr>
+                    <tr data-testid>
+                        <td class="a-color-price a-size-medium a-text-bold">
+                            <span class="break-word">Order Total:</span>
+                        </td>
+                        <td class="a-color-price a-size-medium a-text-right grand-total-price aok-nowrap a-text-bold a-nowrap" id="Purchase_Amount">
+                            ₹{{29+total_price}}
+                        </td>
+                    </tr>
+                    
+                </tbody>
+            </table>
+            <div class="promo-code-container">
+                <label for="promoCode" style="display: contents;font-size: small;">Enter a Promo Code:</label>
+                <br>
+                <div style="display: inline-block;">
+                    <input type="text" id="promoCodeInput" name="promoCode" placeholder="Enter your code" >
+                    <button type="button" onclick="applyDiscount()">Apply</button>
+                </div>
+            </div>
+        </div>
+        <div style="padding-top: 5px;">
+            <button id="payNowButton" class="dAfcjh" onclick="submitPayment({{ address.id }})">Pay Now</button>
+        </div>
+    
+</div>
+</div>
+
+
+<script>
+   
+
+function toggleDropdown(dropdownId) {
+        var dropdownContent = document.getElementById(dropdownId);
+        dropdownContent.classList.toggle('show');
+}
+function applyDiscount() {
+    var promoCode = document.getElementById('promoCodeInput').value;
+    var totalAmount = parseFloat(document.getElementById('t_price').innerText);
+    console.log(promoCode+" "+ totalAmount);
+    // Make an AJAX request to the server
+    fetch(`/get_discount/${promoCode}/${totalAmount}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Display the discount amount
+                document.getElementById('discountAmount').innerText = '-₹' + (data.amount).toFixed(1);
+                document.getElementById('discountSection').style.display = 'contents';
+                document.getElementById('Purchase_Amount').innerText='₹' + (totalAmount-data.amount+29).toFixed(1);
+                document.getElementById('coupon').innerText=(promoCode);
+                document.getElementById('coupon').style.display = 'contents';
+
+            } else {
+                // Hide the discount section if there's an error
+                showMessageBox("Promo code not valid")
+                document.getElementById('discountSection').style.display = 'none';
+                document.getElementById('Purchase_Amount').innerText='₹' + (totalAmount+29);
+                document.getElementById('coupon').style.display = 'none';
+            }
+        })
+        .catch(error => console.error('Error:', error));
+}
+
+function showMessageBox(message) {
+    var messageBox = document.createElement('div');
+    messageBox.className = 'alert alert-dark';
+    messageBox.setAttribute('role', 'alert');
+    messageBox.textContent = message;
+    
+    Object.assign(messageBox.style, {
+        position: 'fixed',
+        top: '10px',
+        right: '30px',
+        zIndex: '9999',
+        backgroundColor: '#45474B',
+        color: 'white'
+    });
+
+    document.body.appendChild(messageBox);
+
+    // Auto-dismiss after 0.5 seconds
+    setTimeout(function () {
+        messageBox.remove();
+    }, 1000);
+    
+} 
+document.querySelectorAll('.payment-option-wrapper').forEach(function (wrapper) {
+    wrapper.addEventListener('click', function () {
+        // Check if the clicked wrapper is active
+        var isActive = wrapper.classList.contains('active');
+        var paymentOptionDiv = wrapper.querySelector('.payment-option');
+        // Remove 'active' class from all wrappers
+        document.querySelectorAll('.payment-option-wrapper').forEach(function (otherWrapper) {
+            otherWrapper.classList.remove('active');
+            paymentOptionDiv.style.border = '1px solid #ccc';
+        });
+
+        // Toggle 'active' class on the clicked wrapper
+        wrapper.classList.toggle('active', !isActive);
+
+        // Call validatePayment only if the wrapper is active
+        if (wrapper.classList.contains('active')) {
+            
+            paymentOptionDiv.style.border = '1px solid black';
+            validatePayment();
+        }
+        else{
+            var payNowButton = document.getElementById('payNowButton');
+            payNowButton.disabled = true;
+            paymentOptionDiv.style.border = '1px solid #ccc';
+            payNowButton.style.backgroundColor = 'grey';
+        }
+    });
+});
+function validatePayment() {
+    var selectedPaymentOption = document.querySelector('.payment-option-wrapper input[type="radio"]:checked');
+    var payNowButton = document.getElementById('payNowButton');
+
+    if (selectedPaymentOption) {
+        payNowButton.disabled = true;
+        payNowButton.style.backgroundColor = 'grey'; // Reset background color
+    } else {
+        payNowButton.disabled = false;
+        payNowButton.style.backgroundColor = 'green'; // Set background color to grey
+    }
+}
+// Initially disable the "Pay Now" button and set the background color to grey
+var payNowButton = document.getElementById('payNowButton');
+payNowButton.disabled = true;
+payNowButton.style.backgroundColor = 'grey'; // Set initial background color
+
+
+function submitPayment(addressId) {
+    // Get the selected payment option
+    event.preventDefault();
+    console.log("Hi Hi HI")
+    var selectedPaymentOption = document.querySelector('.payment-option-wrapper input[type="radio"]:checked');
+
+    // Get the total price
+    var totalAmount = parseFloat(document.getElementById('discountAmount').innerText);
+    console.log("called "+selectedPaymentOption.value);
+    // Make an AJAX request to the server
+    fetch(`/place_order/${addressId}`, {  // Include the address_id in the URL
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            paymentMethod: selectedPaymentOption.value,  // Use .value to get the value of the selected radio button
+            totalAmount: totalAmount,
+            addressId: addressId,
+        }),
+    })
+    .then(response => response.json())
+    .then(data => {
+        // Handle the response from the server
+        console.log(data);
+        if (data.success) {
+            // Redirect to shop.html
+            showMessageBox("Order Placed. Grocery will be delivery soon at your doorstep.")
+            window.location.href = '/shop.html';
+        } else {
+            // Handle the case where the order wasn't placed successfully
+            alert('Error placing the order. Please try again.');
+        }
+    })
+    .catch(error => console.error('Error:', error));
+}
+</script>
+  <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
+</body>
+</html>

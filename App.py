@@ -1,9 +1,10 @@
-from flask import Flask,session, abort,render_template, redirect, url_for, request,flash
+from flask import Flask,session, abort,render_template, redirect, url_for, request,flash,jsonify
+from wtforms.validators import InputRequired
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import exists
 from sqlalchemy.exc import SQLAlchemyError
 from flask_wtf import FlaskForm
-from wtforms import StringField,SubmitField,PasswordField,BooleanField,ValidationError,IntegerField,FloatField,SelectField
+from wtforms import StringField,SubmitField,PasswordField,BooleanField,ValidationError,IntegerField,FloatField,SelectField,RadioField
 from wtforms.validators import DataRequired,EqualTo,Length,NumberRange
 from datetime import datetime
 from flask_wtf.csrf import generate_csrf
@@ -76,12 +77,34 @@ def about():
 def shop():
     # Access form information from the URL parameters
     form=UserForm()
-    name = request.args.get('name')
+    cartform=Cart()
     username = request.args.get('username')
     email = request.args.get('email')
 
+    categories = Category.query.all()
+    category_items_dict = {}
+    for category in categories:
+        items = Order_items.query.filter_by(category_id=category.category_id).all()
+        category_items_dict[category.category_id] = items
+
+    if current_user.is_authenticated:
+        cart_items = db.session.query(Cart, Order_items, Category)\
+        .join(Order_items, Cart.item_id == Order_items.id)\
+        .join(Category, Order_items.category_id == Category.category_id)\
+        .filter(Cart.user_id == current_user.id)\
+        .all()
+        total_price = 0
+        for cart_item, item, category in cart_items:
+            total_price += item.price * cart_item.quantity
+        print(total_price)  
+        return render_template('shop.html',categories=categories , cart_items=cart_items,category_items_dict=category_items_dict,username=current_user.username, email=current_user.email,form=form,cartform=cartform,total_price=total_price)
+
+
     # Render the shop.html template with the form information
-    return render_template('shop.html', name=name, form=form,username=username, email=email)
+    return render_template('shop.html',categories=categories , category_items_dict=category_items_dict,username=username, form=form,cartform=cartform,
+    email=email)
+   
+
 
 @app.route('/portfolio')
 def portfolio():
@@ -191,7 +214,7 @@ def login():
 
 
 
-@app.route('/<username>/user_dashboard',methods=["GET","POST"])
+@app.route('/user',methods=["GET","POST"])
 @login_required
 @user_profile_access_required
 def user_dashboard(username):
@@ -213,7 +236,7 @@ class Cart(db.Model):
     quantity = db.Column(db.Integer, nullable=False)
 
     def __repr__(self):
-        return f'<Cart cart_id={self.cart_id} item_id={self.item_id} user_id={self.user_id} name={self.name} quantity={self.quantity}>'
+        return f'<Cart cart_id={self.cart_id} item_id={self.item_id} user_id={self.user_id} username={self.username} quantity={self.quantity}>'
 
 class CartForm(FlaskForm):
     quantity = IntegerField('Quantity', validators=[DataRequired(), NumberRange(min=1)])
@@ -221,148 +244,67 @@ class CartForm(FlaskForm):
 class BuyForm(FlaskForm):
     quantity = IntegerField('Quantity', validators=[DataRequired(), NumberRange(min=1)])
     
-@app.route("/buy_item/<int:item_id>/<int:category_id>/<username>", methods=["GET", "POST"])
-@login_required
-@user_profile_access_required
-def buy_item(item_id, category_id, username):
-    form = BuyForm()
 
-    # Get the item and category from the database based on the item_id and category_id
-    item = Order_items.query.get(item_id)
-    category = Category.query.get(category_id)
-    user=Users.query.filter_by(username=username).first()
-    if not item or not category:
-        flash("Item or category not found.", "error")
-        return redirect(url_for("user_dashboard",username=username))  # Redirect to some appropriate page
-
-    if form.validate_on_submit():
-        quantity = form.quantity.data
-
-        # Perform any additional validation or checks here if required
-
-        try:
-            # Create a new entry in the placed_order table
-            placed_order = Placed_orders(
-                
-                user_id=user.id,  # Replace this with the actual user_id of the logged-in user
-                total_price=item.price*quantity
-            )
-            
-            item.quantity -=quantity
-            
-            db.session.add(placed_order)
-            db.session.commit()
-
-            flash("Item purchased successfully!", "success")
-            return redirect(url_for("user_dashboard",username=username))  # Redirect to a success page
-
-        except Exception as e:
-            db.session.rollback()
-            flash(f'Error processing the purchase. {e}', "error")
-
-    return render_template("buy_item.html", form=form, username=username,category=category,item=item)    
-
-@app.route('/<username>/add_tocart/<int:category_id>/<int:item_id>', methods=['GET', 'POST'])
-@login_required
-@user_profile_access_required
-def add_tocart(username,category_id, item_id):
-    category = Category.query.get_or_404(category_id)
-    item = Order_items.query.get_or_404(item_id)
-    form = CartForm()
-
-    if form.validate_on_submit():
-        # Get the quantity from the form submission
-        quantity = form.quantity.data
-        unit=(item.unit).split("/")[1]
-        # Perform any validation you need (e.g., checking if the quantity is available)
-        if(quantity<=item.quantity):
-            user=Users.query.filter_by(username=username).first()
-            # Save the cart item to the database
-            
-            cart_item = Cart(category_id=category_id, item_id=item.id, user_id=user.id, username=username, quantity=quantity)
-            db.session.add(cart_item)
-            db.session.commit()
-
-            flash(f'{quantity}{unit} {item.name} added to cart!', 'success')
-            return redirect(url_for('user_dashboard',username=username))
-        else:
-            flash(f'{quantity} {item.name} cannot be added to cart!', 'Failure')
-            return redirect(url_for('add_tocart',item_id=item_id,category_id=category_id,username=username))
-
-        # Get the user ID (replace this with your actual user authentication method)
-         # Replace with your user ID logic (e.g., current_user.id)
-
-
-
-    return render_template('add_tocart.html', item=item, form=form,category=category,username=username)
-
-#Edit cart Item
-@app.route('/<username>/edit_cart_item/<int:cart_item_id>', methods=['GET', 'POST'])
-@login_required
-@user_profile_access_required
-def edit_cart_item(username, cart_item_id):
-    cart_item = Cart.query.get_or_404(cart_item_id)
-    item = Order_items.query.get_or_404(cart_item.item_id)
-    category = Category.query.get_or_404(cart_item.category_id)
-    form = CartForm(obj=cart_item)
-
-    if form.validate_on_submit():
-        quantity = form.quantity.data
-        unit = item.unit.split("/")[1]
-
-        if quantity <= item.quantity:
-            cart_item.quantity = quantity
-            
-            db.session.commit()
-            flash(f'{quantity} {unit} {item.name} updated in cart!', 'success')
-            return redirect(url_for('user_dashboard', username=username))
-        else:
-            flash(f'{quantity} {item.name} cannot be updated in cart!', 'failure')
-
-    return render_template('edit_cart_item.html', item=item, form=form, category=category, username=username, cart_item=cart_item)
-
-
-@app.route('/<username>/cart', methods=['GET', 'POST'])
-@login_required
-@user_profile_access_required
-def cart(username):
-    user = Users.query.filter_by(username=username).first()
-    total_price = 0  # Variable to store the total price
-
+@app.route('/add_to_cart', methods=['GET','POST'])
+def add_to_cart():
+    if not current_user.is_authenticated:
+        flash('Please log in to add items to your cart.', 'error')
+        return redirect(url_for('login'))
+        # return jsonify({'error': 'User not authenticated'}), 401
     
+    
+    
+    form=UserForm()
+    cartform=Cart()
+    item_id = request.form.get('item_id')  # Assuming your HTML form is sending the data as form data
+    category_id = request.form.get('category_id')
+    quantity = request.form.get('quantity')  or 1  # Default to 1 if quantity is not provided
+ # Default to 1 if quantity is not provided
+    item=Order_items.query.get_or_404(item_id)
+
+    if(int(quantity)>int(item.quantity)):
+        flash(f'{quantity}{(item.unit).split("/")[1]} {item.name} cannot be added to cart!', 'Failure')
+    else:
+        # Check if the item is already in the cart
+        cart_item = Cart.query.filter_by(item_id=item_id,category_id=category_id, user_id=current_user.id).first()
+        # username=Users.query.filter_by(id=current_user.id).username
+        if cart_item:
+            # Update the quantity if the item is already in the cart
+            cart_item.quantity +=int( quantity)
+            flash('Item quantity updated in your cart.', 'success')
+        else:
+            # Add a new item to the cart
+            
+            new_cart_item = Cart(category_id =category_id ,item_id=item_id, user_id=current_user.id,username=current_user.username, quantity=quantity)
+            db.session.add(new_cart_item)
+            flash('Item added to your cart.', 'success')
+
+
+
+
+    db.session.commit()
+    categories = Category.query.all()
+    category_items_dict = {}
+    for category in categories:
+        items = Order_items.query.filter_by(category_id=category.category_id).all()
+        category_items_dict[category.category_id] = items
+
+    # cart_items = Cart.query.filter_by(username=current_user.username).all()
     cart_items = db.session.query(Cart, Order_items, Category)\
         .join(Order_items, Cart.item_id == Order_items.id)\
         .join(Category, Order_items.category_id == Category.category_id)\
-        .filter(Cart.user_id == user.id)\
+        .filter(Cart.user_id == current_user.id)\
         .all()
+    total_price = 0
     for cart_item, item, category in cart_items:
         total_price += item.price * cart_item.quantity
-    return render_template('cart.html', cart_items=cart_items,total_price=total_price,username=username)
+    # Render the shop.html template with the form information
+    return render_template('shop.html',categories=categories , cart_items=cart_items,category_items_dict=category_items_dict,username=current_user.username, email=current_user.email,form=form,cartform=cartform,total_price=total_price)
+   
 
-
-
-
-def get_user_orders(user_id):
-    orders = Placed_orders.query.filter_by(user_id=user_id).all()
-    return orders
-
-def get_user_details(username):
-    user = Users.query.filter_by(username=username).first()
-    return user
-
-@app.route("/<username>/user_profile")
-@login_required
-@user_profile_access_required
-def user_profile(username):
-    user = get_user_details(username)
-    orders = get_user_orders(user.id)
-    return render_template("user_profile.html", user=user, orders=orders, username=username)
-
-@app.route("/<username>/delete_from_cart/<int:item_id>",methods=['GET','POST'])
-@login_required
-@user_profile_access_required
-def delete_from_cart(username,item_id):
-    cart_item = Cart.query.filter_by(username=username, item_id=item_id).first()
+@app.route("/delete_from_cart/<int:item_id>",methods=['GET','POST'])
+def delete_from_cart(item_id):
+    cart_item = Cart.query.filter_by(username=current_user.username, item_id=item_id).first()
 
     if cart_item:
         try:
@@ -379,17 +321,309 @@ def delete_from_cart(username,item_id):
             flash("Error occurred while deleting the item from the cart. Please try again later.", "danger")
     else:
         flash("Item not found in the cart.", "danger")
+    categories = Category.query.all()
+    cart_items = db.session.query(Cart, Order_items, Category)\
+        .join(Order_items, Cart.item_id == Order_items.id)\
+        .join(Category, Order_items.category_id == Category.category_id)\
+        .filter(Cart.user_id == current_user.id)\
+        .all()
+    total_price = 0
+    for cart_item, item, category in cart_items:
+        total_price += item.price * cart_item.quantity
+    category_items_dict = {}
+    for category in categories:
+        items = Order_items.query.filter_by(category_id=category.category_id).all()
+        category_items_dict[category.category_id] = items    
+    # return redirect(url_for('shop', username=username))
+    form=UserForm()
+    cartform=CartForm()    
+    return redirect(url_for('shop',categories=categories , cart_items=cart_items,category_items_dict=category_items_dict,username=current_user.username, email=current_user.email,form=form,cartform=cartform,total_price=total_price))
+ 
+# Save address respective to a particular User
+class User_address(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.String(50), nullable=False)
+    title = db.Column(db.String(10), nullable=False)
+    receiver_name = db.Column(db.String(100), nullable=False)
+    delivery_address = db.Column(db.String(255), nullable=False)
+    address_type = db.Column(db.String(10), nullable=False)
 
-    return redirect(url_for('cart', username=username))
+class AddressForm(FlaskForm):
+    title = SelectField('Title', choices=[('0', 'Title'), ('1', 'Mr.'), ('2', 'Mrs'), ('3', 'Miss')], validators=[InputRequired()])
+    receiver_name = StringField('Receiver\'s Name', validators=[InputRequired()])
+    delivery_address = StringField('Delivery Address', validators=[InputRequired()])
+    save_address_as = RadioField('Save Address as', choices=[('Home', 'Home'), ('Work', 'Work'), ('Other', 'Other')], validators=[InputRequired()])
+
+    
+@app.route("/cart",methods=["GET","POST"])
+def cart():
+    cart_items = db.session.query(Cart, Order_items, Category)\
+        .join(Order_items, Cart.item_id == Order_items.id)\
+        .join(Category, Order_items.category_id == Category.category_id)\
+        .filter(Cart.user_id == current_user.id)\
+        .all()
+    addresses = db.session.query(User_address).filter_by(user_id=current_user.id).all()
+    form=AddressForm()
+    return render_template("cart.html",username=current_user.username,cart_items=cart_items,addresses=addresses,form=form)
+
+
+@app.route("/delete/<int:item_id>",methods=['GET'])
+def delete(item_id):
+    cart_item = Cart.query.filter_by(username=current_user.username, item_id=item_id).first()
+
+    if cart_item:
+        try:
+            # Update the Order_items table and add the quantity back
+            # item = Order_items.query.get_or_404(item_id)
+            # item.quantity += cart_item.quantity
+
+            
+            db.session.delete(cart_item)
+            db.session.commit()
+            return jsonify({"success": True, "message": "Item successfully removed"})
+            
+        except:
+            return jsonify({"success":False,"mesaage":"Error occurred while deleting the item from the cart. Please try again later."}),404
+    else:
+        return jsonify({"success": False, "message": "Item not found in the cart"}), 404
+        
+@app.route('/increase_quantity/<int:item_id>', methods=['GET'])
+def increase_quantity(item_id):
+    # Find the item in the cart
+    cart_item = Cart.query.filter_by(username=current_user.username, item_id=item_id).first()
+
+    if cart_item:
+        # Ensure the quantity doesn't go below 1
+        cart_item.quantity += 1
+        db.session.commit()
+        return jsonify({"success": True, "message": "Quantity increased successfully"})
+    else:
+        return jsonify({"success": False, "message": "Item not found in the cart"}), 404
+
+@app.route('/decrease_quantity/<int:item_id>', methods=['GET'])
+def decrease_quantity(item_id):
+    # Find the item in the cart
+    print("Increase")
+    cart_item = Cart.query.filter_by(username=current_user.username, item_id=item_id).first()
+
+    if cart_item:
+        # Ensure the quantity doesn't go below 1
+        cart_item.quantity = max(cart_item.quantity - 1, 1)
+        db.session.commit()
+        return jsonify({"success": True, "message": "Quantity decreased successfully"})
+    else:
+        return jsonify({"success": False, "message": "Item not found in the cart"}), 404
+    
+
+
+
+@app.route('/save_address', methods=['POST'])
+def save_address():
+    edit_mode = request.form.get('edit_mode', 'false').lower() == 'true'
+
+    if edit_mode:
+        # This is an edit operation
+        address_id = request.form.get('address_id')
+        # Handle updating the existing address with ID address_id
+
+        # url_for('edit_address', address_id=address_id)
+        flash("Address updated successfully")
+    else:
+        form = AddressForm()
+
+        if form.validate_on_submit():
+            # Create a new user address instance
+            new_user_address = User_address(
+                user_id=current_user.id,  # Assuming user_id is associated with the current user
+                title=form.title.data,
+                receiver_name=form.receiver_name.data,
+                delivery_address=form.delivery_address.data,
+                address_type=form.save_address_as.data
+            )
+
+            # Add the user address to the database
+            db.session.add(new_user_address)
+            db.session.commit()
+            flash("Address added, now Proceed to Payment")
+           
+
+            addresses = User_address.query.filter_by(user_id=current_user.id).all()
+            cart_items = db.session.query(Cart, Order_items, Category) \
+                .join(Order_items, Cart.item_id == Order_items.id) \
+                .join(Category, Order_items.category_id == Category.category_id) \
+                .filter(Cart.user_id == current_user.id) \
+                .all()
+
+            return render_template("cart.html", username=current_user.username, cart_items=cart_items, addresses=addresses, form=form)
+        else:
+            # Handle form validation errors
+            flash('Form validation error. Please check your input.', 'error')
+        return redirect(url_for('cart'))
+
+@app.route('/edit_address/<int:address_id>', methods=['GET'])
+def edit_address(address_id):
+   
+    # Fetch the address details from the database based on the address_id
+    address = User_address.query.get(address_id)
+    print("Fetching from edit_address GET")
+    # Return the address details as JSON
+    return jsonify({
+        'id': address.id,
+        'user_id': address.user_id,
+        'title': address.title,
+        'receiver_name': address.receiver_name,
+        'delivery_address': address.delivery_address,
+        'address_type': address.address_type,
+        'edit_mode':True
+    })
+
+@app.route('/update_address/<int:address_id>', methods=['POST'])
+def update_address(address_id):
+    edit_mode = request.form.get('edit_mode', 'false').lower() == 'true'
+
+    if edit_mode:
+        # Update the existing address with the new information
+        address = User_address.query.get(address_id)
+        address.title = request.form['title']
+        address.receiver_name = request.form['receiver_name']
+        address.delivery_address = request.form['delivery_address']
+        address.address_type = request.form['save_address_as']
+
+        db.session.commit()
+
+        # Return success response
+        flash('Address updated successfully')
+    else:
+        # Handle the case where edit_mode is not set
+        flash('Invalid request. Please try again.', 'error')
+    
+    # Redirect to a relevant page (e.g., cart or a confirmation page)
+    return redirect(url_for('cart'))  # Change 'cart' to the appropriate endpoint
+
+@app.route('/delete_address/<int:address_id>', methods=['GET'])
+def delete_address(address_id):
+    # Find the address in the database
+    address = User_address.query.filter_by(id=address_id).first()
+
+    if address:
+        try:
+            # Update the Order_items table and add the quantity back
+            # item = Order_items.query.get_or_404(item_id)
+            # item.quantity += cart_item.quantity
+
+            
+            db.session.delete(address)
+            db.session.commit()
+            return jsonify({"success": True, "message": "Address successfully removed"})
+            
+        except:
+            return jsonify({"success":False,"mesaage":"Error occurred while deleting the address from the table. Please try again later."}),404
+    else:
+        return jsonify({"success": False, "message": "Address not found in the table"}), 404
+# Add this route in your Flask app
+# @app.route('/delete_address/<int:address_id>', methods=['GET'])
+# def delete_address(address_id):
+#     # Find the address in the database
+#     address = User_address.query.filter_by(id=address_id).first()
+
+#     if address:
+#         # Delete the address
+#         db.session.delete(address)
+#         db.session.commit()
+
+#         # Return a success JSON response
+#         return jsonify({'message': 'Address deleted successfully'})
+#     else:
+#         # Return an error JSON response if the address is not found
+#         return jsonify({'error': 'Address not found'}), 404
+    
+@app.route('/checkout/<int:address_id>',methods=['GET','POST'])
+def checkout(address_id):
+    # Handle the payment logic with the selected address ID
+    # For demonstration, just render a template
+    total_price = 0
+    cart_items = db.session.query(Cart, Order_items, Category)\
+        .join(Order_items, Cart.item_id == Order_items.id)\
+        .join(Category, Order_items.category_id == Category.category_id)\
+        .filter(Cart.user_id == current_user.id)\
+        .all()
+    
+    address=User_address.query.filter_by(id=address_id).first()
+    num_items_in_cart = len(cart_items)
+    for cart_item, item, category in cart_items:
+        total_price += item.price * cart_item.quantity
+    # if request.method == 'POST':
+    #     promo_code = request.form.get('promo_code')
+
+    #     if promo_code:
+    #         discount = Discount.query.filter_by(code=promo_code).first()
+
+    #         if discount:
+    #             # Apply the discount to the total amount
+    #             if total_price-discount.amount>=50:
+    #                 print(discount.amount)
+    #                 total_price -= discount.amount
+    #                 # flash(f'Discount of {discount.amount} applied successfully!', 'success')
+    #             else:
+    #                 return jsonify({"success": False, "message": "Minumum Amt of Purchase should be ₹150"})
+
+    #         else:
+    #             flash('Invalid promo code. Please try again.', 'error')
+
+    
+    return render_template('checkout.html',address=address,cart_items=cart_items,num=num_items_in_cart,total_price=total_price)
+
+
+
+class Discount(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    code = db.Column(db.String(200), unique=True, nullable=False)
+    amount = db.Column(db.Float, nullable=False)
+
+    def __init__(self, code, amount):
+        self.code = code
+        self.amount = amount
+
+@app.route('/get_discount/<string:promo_code>/<string:totalAmount>' ,methods=['GET'])
+def get_discount(promo_code,totalAmount):
+    discount = Discount.query.filter_by(code=promo_code).first()
+    print("***********")
+    if discount and discount.amount > 0:
+        if int(totalAmount) - discount.amount >= 50:
+            return jsonify({'success': True, 'amount': discount.amount})
+        else:
+            return jsonify({'success': False, 'message': "Minimum Amount of Purchase should be ₹150"})
+        # return jsonify({'success': True, 'amount': discount.amount})
+    else:
+        return jsonify({'success': False, 'message': 'Invalid Discount Code'})
+
+
+    
+def get_user_orders(user_id):
+    orders = Placed_orders.query.filter_by(user_id=user_id).all()
+    return orders
+
+def get_user_details(username):
+    user = Users.query.filter_by(username=username).first()
+    return user
+
+@app.route("/<username>/user_profile")
+@login_required
+@user_profile_access_required
+def user_profile(username):
+    user = get_user_details(username)
+    orders = get_user_orders(user.id)
+    return render_template("user_profile.html", user=user, orders=orders, username=username)
+
 
 class User_buy(db.Model):
-    buy_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    order_id = db.Column(db.Integer, nullable=False)
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    order_id = db.Column(db.Integer, db.ForeignKey('placed_orders.order_id'),nullable=False)
     category_name = db.Column(db.String(200), nullable=False)
     item_name = db.Column(db.String(200), nullable=False)
     quantity = db.Column(db.Integer, nullable=False)
     price = db.Column(db.Integer, nullable=False)
-    date_added = db.Column(db.DateTime, default=datetime.utcnow)
+    
 
     
 
@@ -398,63 +632,107 @@ class Placed_orders(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     order_date = db.Column(db.DateTime, default=datetime.utcnow)
     total_price = db.Column(db.Float, nullable=False)
+    mode_of_payment=db.Column(db.String(200),nullable=False)
+    address=db.Column(db.String(200),nullable=False)
 
     def __repr__(self):
         return f'<Placed_Orders order_id={self.order_id} user_id={self.user_id} order_date={self.order_date} total_price={self.total_price}>'
     
-@app.route('/<username>/place_order', methods=['GET','POST'])
 
-@login_required
-@user_profile_access_required
-def place_order(username):
-    user_id = current_user.id
-    cart_items = Cart.query.filter_by(user_id=user_id).all()
-    total_price = 0
+@app.route('/place_order/<int:address_id>', methods=['POST'])
+def place_order(address_id):
+    try:
+        data = request.json
+        payment_method = data.get('paymentMethod')
+        total_amount = data.get('totalAmount')
+        address_id = data.get('addressId')
+        address = User_address.query.get(address_id)
+        
+        # Step 1: Create the Order
+        new_order = Placed_orders(user_id=current_user.id, order_date=datetime.utcnow(),total_price=total_amount,mode_of_payment=payment_method,address=address.delivery_address)
+        db.session.add(new_order)
+        db.session.commit()
 
-    if cart_items:
-        try:
-            # Calculate the total price of the order
-            for cart_item in cart_items:
-                item = Order_items.query.get_or_404(cart_item.item_id)
-                total_price += item.price * cart_item.quantity
-
-            placed_order = Placed_orders(user_id=user_id, total_price=total_price)
-            db.session.add(placed_order)
-            db.session.commit()
+        # Step 2: Retrieve Cart Items
+        cart_items = Cart.query.filter_by(user_id=current_user.id).all()
+        # Update the Order_items table and subtract the ordered quantity
+        for cart_item in cart_items:
+            item = Order_items.query.filter_by(id=cart_item.item_id).first()
             
-            # Update the Order_items table and subtract the ordered quantity
-            for cart_item in cart_items:
-                item = Order_items.query.filter_by(id=cart_item.item_id).first()
-                # if cart_item.quantity <= item.quantity:
-                        # Save the order to the placed_order table
+            category=Category.query.filter_by(category_id=item.category_id).first()
+            user_buyer = User_buy(
+                order_id=new_order.order_id,
+                category_name=category.category_name,
+                item_name=item.name,
+                quantity=cart_item.quantity,
+                price=item.price
+            )  
+
+            db.session.add(user_buyer) 
+            
+            item.quantity -= cart_item.quantity
+            db.session.delete(cart_item)
+            db.session.commit()
+        
+        # Return success response
+        return jsonify({'success': True, 'message': 'Order placed successfully'})
+    except Exception as e:
+        # Handle any exceptions
+        print(e)
+        return jsonify({'success': False, 'message': 'Error placing the order'}), 500
+    
+# @app.route('/<username>/place_order', methods=['GET','POST'])
+# @login_required
+# @user_profile_access_required
+# def place_order(username):
+#     user_id = current_user.id
+#     cart_items = Cart.query.filter_by(user_id=user_id).all()
+#     total_price = 0
+
+#     if cart_items:
+#         try:
+#             # Calculate the total price of the order
+#             for cart_item in cart_items:
+#                 item = Order_items.query.get_or_404(cart_item.item_id)
+#                 total_price += item.price * cart_item.quantity
+
+#             placed_order = Placed_orders(user_id=user_id, total_price=total_price)
+#             db.session.add(placed_order)
+#             db.session.commit()
+            
+#             # Update the Order_items table and subtract the ordered quantity
+#             for cart_item in cart_items:
+#                 item = Order_items.query.filter_by(id=cart_item.item_id).first()
+#                 # if cart_item.quantity <= item.quantity:
+#                         # Save the order to the placed_order table
                 
 
-                category=Category.query.filter_by(category_id=item.category_id).first()
-                user_buyer = User_buy(
-                    order_id=placed_order.order_id,
-                    category_name=category.category_name,
-                    item_name=item.name,
-                    quantity=cart_item.quantity,
-                    price=item.price
-                )   
+#                 category=Category.query.filter_by(category_id=item.category_id).first()
+#                 user_buyer = User_buy(
+#                     order_id=placed_order.order_id,
+#                     category_name=category.category_name,
+#                     item_name=item.name,
+#                     quantity=cart_item.quantity,
+#                     price=item.price
+#                 )   
                 
                     
                     
                 
                 
-                item.quantity -= cart_item.quantity
-                db.session.delete(cart_item)
-                db.session.commit()
-                db.session.flush()
+#                 item.quantity -= cart_item.quantity
+#                 db.session.delete(cart_item)
+#                 db.session.commit()
+#                 db.session.flush()
            
 
-            flash("Order placed successfully! Thank you for your purchase.", "success")
-        except SQLAlchemyError as e:
-            # Rollback the transaction on any database errors
-            db.session.rollback()
-            flash(f"Error occurred while placing the order: {str(e)}", "danger")
+#             flash("Order placed successfully! Thank you for your purchase.", "success")
+#         except SQLAlchemyError as e:
+#             # Rollback the transaction on any database errors
+#             db.session.rollback()
+#             flash(f"Error occurred while placing the order: {str(e)}", "danger")
 
-    return redirect(url_for('cart', username=username))   
+#     return redirect(url_for('cart', username=username))   
 
 class SearchForm(FlaskForm):
     search_query = StringField('Search', validators=[DataRequired()])
@@ -712,7 +990,7 @@ class Order_items(db.Model):
 
 class CreateItemForm(FlaskForm):
     product_name = StringField('Product Name :', validators=[DataRequired()])
-    unit = SelectField('Unit :', choices=[('Rs/kg', 'Rs/kg'), ('Rs/L', 'Rs/L'), ('Rs/dozen', 'Rs/dozen'), ('Rs/gram', 'Rs/gram')], validators=[DataRequired()])
+    unit = SelectField('Unit :', choices=[('Rs/kg', 'Rs/kg'), ('Rs/L', 'Rs/L'), ('Rs/dozen', 'Rs/dozen'), ('Rs/500 gram', 'Rs/500 gram'),('Rs/unit','Rs/unit')], validators=[DataRequired()])
     rate_per_unit = FloatField('Rate/Unit :', validators=[DataRequired()])
     quantity = IntegerField('Quantity :', validators=[DataRequired(), NumberRange(min=0)])
     save_button = SubmitField('Save')
@@ -753,7 +1031,7 @@ class EditItemForm(FlaskForm):
     name = StringField('Item Name', validators=[DataRequired()])
     price = FloatField('Price', validators=[DataRequired()])
     quantity = IntegerField('Quantity', validators=[DataRequired()])
-    unit = SelectField('Unit', choices=[('Rs/kg', 'Rs/Kg'), ('Rs/L', 'Rs/L'), ('Rs/Dozen', 'Rs/dozen'), ('Rs/gram', 'Rs/gram')], validators=[DataRequired()])
+    unit = SelectField('Unit :', choices=[('Rs/kg', 'Rs/kg'), ('Rs/L', 'Rs/L'), ('Rs/dozen', 'Rs/dozen'), ('Rs/500 gram', 'Rs/500 gram'),('Rs/unit','Rs/unit')], validators=[DataRequired()])
     category_id = IntegerField('Category ID', validators=[DataRequired()])
 
 @app.route("/<name>/edit_item/<int:item_id>", methods=["GET", "POST"])

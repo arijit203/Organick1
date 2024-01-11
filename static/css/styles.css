@@ -38,11 +38,7 @@ ul {
 a {
   text-decoration: none;
 }
-.container {
-  max-width: 1040px;
-  margin: 0 auto;
-  padding: 0rem 1.5rem;
-}
+
 .section_header_title_2 {
   font-family: "Freehand", cursive;
 }
@@ -129,6 +125,9 @@ section{
   font-weight: 700;
   a{
     color:var(--color-teel);
+    text-decoration: none; /* Remove underline from the link */
+    display: flex; /* Enable flex properties on the anchor */
+    align-items: center; /* Align items vertically in the center */
   }
   
   border-radius: 1rem;
@@ -136,7 +135,7 @@ section{
 }
 
 .btn_icon{
-  margin-left: 1rem;
+  margin-left: 0.5rem;
 }
 
 /* ads */
@@ -248,28 +247,49 @@ section{
   color:var(--color-teel);
 }
 
+.container {
+  max-width: 1350px;
+  margin: 0 auto;
+  padding: 0rem 1.5rem;
+}
+
 .products{
   width:100%;
   display:grid;
-  grid-template-columns: repeat(auto-fit,minmax(22rem,1fr));
-  grid-gap:2rem;
+  grid-template-columns: repeat(auto-fit,minmax(21rem,1fr));
+  grid-gap:3rem;
+}
+
+.category_header {
+  h2{
+    font-size: 1.5rem;
+  }
+  text-align: center;
+}
+
+.category_row {
+  margin-bottom: 30px; /* Adjust the value as needed */
 }
 
 .product{
   background-color: var(--color-grey);
-  padding:5rem 0rem;
+  /* padding:5rem 0rem; */
   
 }
 
 .product_img{
   padding: 3rem;
   width:100%;
+  margin-bottom: 0.5rem;
 }
 
 .product_card{
   border-radius: 1rem;
   background-color: #fff;
   position: relative;
+  width:25rem;
+  margin:0;
+  margin-bottom: 20px;
 }
 
 .product_body{
@@ -288,11 +308,14 @@ section{
 
 }
 .product_footer{
-  padding:0.7rem 0rem;
-  border-top: 1px solid var(--color-grey);
+  padding:0.7rem 1rem;
   display: flex;
   align-items: center;
   justify-content: space-between;
+}
+
+.line{
+  border-bottom: 1px solid var(--color-grey);
 }
 
 
@@ -1058,4 +1081,36 @@ $light-bg:#f3f3f3;
 $border:0.1rem solid rgba(0,0,0,0.1);
 $box-shadow:0.5rem 1rem rgba(0,0,0,0.1); */
 
+
+.cart_box {
+  display: flex;
+  align-items: center;
+  background-color:#EFEFEF; 
+  
+}
+
+.quantity_box {
+  width: 180px; /* Adjust width as needed */
+  padding: 0.5rem;
+  /* margin-right: 0.5rem; Adjust margin as needed */
+  margin: 1rem 1rem;
+  text-align: center;
+  border: 1px solid #ddd;
+  border-radius: 2px;
+  
+}
+
+
+.add_to_cart_btn {
+  background-color: var(--color-white);
+  border: none;
+  outline: none;
+  padding: 0.5rem;
+  cursor: pointer;
+}
+
+.cart_symbol {
+  width: 20px; /* Adjust width as needed */
+  height: auto;
+}
 

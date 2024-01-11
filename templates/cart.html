@@ -1,0 +1,757 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register</title>
+    <!-- Bootstrap CSS -->
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">    <!-- Include any additional CSS files here -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/cart_component.css') }}">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Recursive:wght@300&display=swap" />
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAqPekF8eGHrEADspHyIKC0q-Gf0wnc39c&libraries=places&callback=initMap" async defer></script>
+    <style>
+        .custom-modal-content {
+            /* background-color: grey;  */
+            width: 120%; /* Adjust the width as needed */
+            margin: auto; /* Center the modal horizontally */
+        }
+        .black-text {
+            color: black !important;
+        }
+        
+        
+        .DeliveryAddressModal__AddresTypeWrapper-sc-1s23trb-25 {
+            list-style-type: none;  /* Remove the list-style type (bullet/numbering) */
+            padding: 0;             /* Remove any default padding */
+            margin: 0;              /* Remove any default margin */
+            display: flex;          /* Use flexbox to align children side by side */
+        }
+
+        .saveAddressOptionLabel {
+            margin-right: 15px;     /* Add some spacing between radio buttons if needed */
+        } */
+        .options-container {
+        display: flex;
+        /* Add any additional styles for the container here */
+    }
+
+   
+
+    .saveAddressOptionLabel {
+        list-style-type: none;
+        padding: 0;
+        margin: 0;
+        display: flex;
+        /* Add any additional styles for the label here */
+    }
+
+    /* Adjust the margin or padding as needed */
+    .saveAddressOptionLabel input {
+        margin-right: 10px;
+    }
+    .address-type {
+        font-weight: bold; /* Make address type bold */
+        display: flex; /* Use flexbox for layout */
+        align-items: center; /* Center items vertically */
+    }
+    </style>
+
+</head>
+<body>
+    <!-- Flash Messages -->
+    {% for message in get_flashed_messages() %}
+    <div class="alert alert-primary alert-dismissible fade show" role="alert">
+        <strong>{{message}}</strong> 
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      </div>
+        
+    {% endfor %}
+
+    <div class="container">
+        <div class="row">
+            <div class="col-md-5 cart__bg"></div>
+            <div class="col-md-7 d-flex align-items-center justify-content-center flex-direction-column space">
+                
+                <div>
+                    <h2>Your Cart</h2>   
+                    <br>
+                    {% if current_user.is_authenticated %} 
+                        
+                        {% if cart_items %}
+                            <div class="row row-cols-1 row-cols-md-2 g-4">
+                                {% for cart_item,item,category in cart_items %}
+                                    <div class="col">
+                                        
+                                        <div class="card">
+                                            <img src="static/images/items/{{ item.name|replace(' ', '_')|lower }}.png" class="card-img-top restricted-image" alt="{{ item.item_name }}">
+                                            <div class="card-body">
+                                                <h5 class="card-title">{{ item.name }}</h5>
+                                                <p class="card-text">Price: Rs. {{ item.price }} per  {{item.unit.split('/')[1]}} </p>
+                                            </div>
+                                            <div class="card-footer d-flex justify-content-between align-items-center">
+                                                <div class="quantity-control" data-max-quantity="{{ item.quantity }}" data-item-id="{{ cart_item.item_id }}">
+                                                    <button class="quantity-btn decreaseQuantity">-</button>
+                                                    <span class="modalItemQuantity">{{ cart_item.quantity }}</span>
+                                                    <button class="quantity-btn increaseQuantity">+</button>
+                                                </div>
+                                                
+                                                <button class="btn btn-danger delete-btn" data-item-id="{{ cart_item.item_id }}">Delete</button>
+                                                <button type="button" 
+                                                class="btn btn-primary more-info-btn"
+                                                data-bs-toggle="modal" data-bs-target="#moreInfoModal"
+                                                data-item-name="{{ item.name }}"
+                                                data-item-quantity="{{ cart_item.quantity }}"
+                                                data-item-price="{{ item.price }}"
+                                                data-item-image="static/images/items/{{ item.name|replace(' ', '_')|lower }}.png">
+                                                
+                                                    More Information
+                                                </button>
+                                            </div>
+                                        </div>
+                                       
+                                    </div>
+                                {% endfor %}
+                            </div>
+                            <div class="text-center mt-3">
+                                <p>Total Amount: <span id="totalAmount">0</span></p>
+                                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addressModal">
+                                    Proceed to Checkout
+                                </button>
+                            </div>
+                            
+                        {% else %}
+                            <p>Your cart is empty.</p>
+                        {% endif %}
+                    {% else %} 
+                        {{ redirect(url_for('404')) }}
+                    {% endif %}
+                        
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- The Product Information modal -->
+    
+    <div class="modal fade" id="moreInfoModal" tabindex="-1" aria-labelledby="moreInfoModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content custom-modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="moreInfoModalLabel">Product Information</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <section class="single">
+                    <div class="container single_container">
+                        <div class="single_content">
+                            <img src="" class="card-img-top restricted-image" alt="" id="modalItemImage">
+                        </div>
+                        
+                        <div class="single_content">
+                            <h4  id="modalItemName"></h4>
+                            <div class="single_stars">
+                                <img src="static/images/icon/star.png" alt="" class="star">
+                                <img src="static/images/icon/star.png" alt="" class="star">
+                                <img src="static/images/icon/star.png" alt="" class="star">
+                                <img src="static/images/icon/star.png" alt="" class="star">
+                                <img src="static/images/icon/star.png" alt="" class="star">
+                            </div>
+                            <h4 class="single_price modal-text" id="modalItemPrice"></h4>
+                            <p class="single_p">Lorem ipsum dolor sit amet consectetur adipisicing elit. Quasi quae ad magnam numquam, aliquid recusandae, nihil perferendis cum voluptatibus molestias quo laboriosam illo commodi at veniam repellendus dicta possimus inventore!</p>
+                            
+                        </div>
+                        
+                    </div>
+                </section>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <!-- Add any other buttons you need in the modal footer -->
+                </div>
+            </div>
+        </div>      
+    </div>
+
+
+    <!-- Address Modal -->
+    <div class="modal fade right-modal" id="addressModal" tabindex="-1" aria-labelledby="addressModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-side modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    
+                    <div class="modal-title" id="addressModalLabel">
+                        
+                        <div class="Address__NavBarTitle-sc-1o1mdn6-13 bHnFrg" id="closeModalBtn">
+                            
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrow-left" viewBox="0 0 16 16" data-bs-dismiss="modal">
+                                <path fill-rule="evenodd" d="M15 8a.5.5 0 0 0-.5-.5H2.707l3.147-3.146a.5.5 0 1 0-.708-.708l-4 4a.5.5 0 0 0 0 .708l4 4a.5.5 0 0 0 .708-.708L2.707 8.5H14.5A.5.5 0 0 0 15 8"/>
+                                </svg>
+                            
+                            &nbsp;&nbsp;&nbsp;My Address
+                        </div>
+                    </div>    
+                    
+                      
+                </div>
+                <div class="modal-body custom-modal-body">
+                    <!-- Display user's existing address or provide an option to add a new one -->
+                    <div class="Address__NewAddressIconContainer-sc-1o1mdn6-10 Ojjez OiiYr" data-bs-toggle="modal" data-bs-target="#addAddressModal">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor" class="bi bi-plus-circle" viewBox="0 0 16 16">
+                            <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14m0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16"/>
+                            <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4"/>
+                          </svg>
+                          &nbsp;&nbsp;&nbsp;
+                          Add a New Address
+                    </div>
+                   
+                    <!-- Add logic here to display the existing address -->
+                    <div class="Address__SavedAddressTitleContainer-sc-1o1mdn6-6 jhLdwA">
+                        <div class="Address__SavedAddressTitleText-sc-1o1mdn6-5 lbzWtZ">Choose Delivery Address</div>
+                    </div>
+                
+                    <div class="address-list">
+                        {% for address in addresses %}
+                            <div class="form-check address-item">
+                                <label class="form-check-label" for="address{{ loop.index }}">
+                                    
+                                    <span class="address-type">
+                                        <input class="form-check-input" type="radio" name="existingAddress" id="address{{ loop.index }}" value="{{ address.id }}" onchange="updateSelectedAddress({{ address.id }})" >
+
+                                        {{ address.address_type }} <span class="actions">
+                                            <span onclick="showOptions({{ loop.index }})" style="margin-left: 290px;font-size: 25px;">...</span>
+                                            <div id="options{{ loop.index }}" class="options" style="display: none;margin-left:215px;color:black;">
+                                                <a href="#" onclick="editAddress({{ address.id }},event)" style="color:black;text-decoration: none;">Edit</a>
+                                                <span> | </span>
+                                                <a href="#" onclick="deleteAddress({{ address.id }}, event)" style="color:black;text-decoration: none;">Delete</a>
+                                            </div>
+                                        </span>
+                                    </span>
+                                    
+                                    {% if address.title == '1' %}
+                                        <span class="title">Mr.</span>
+                                    {% elif address.title == '2' %}
+                                        <span class="title">Mrs</span>
+                                    {% elif address.title == '3' %}
+                                        <span class="title">Miss</span>
+                                    {% endif %}
+                                    <span class="receiver-name">{{ address.receiver_name }}</span><br>
+                                    <span class="delivery-address">{{ address.delivery_address }}</span>
+                                </label>
+                            </div>
+                        {% endfor %}
+                    </div>
+
+                    
+                    
+                    <!-- Add form or input fields for the new address here -->
+                </div>
+                <div class="modal-footer">
+                    <!-- Hidden field to store selected address ID -->
+                    <input type="hidden" name="selectedAddress" id="selectedAddress" value="">
+
+                    <button type="button" class="btn btn-success" style="width:100%;height:57px" onclick="proceedToPay()">Proceed to Pay > </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal for adding a new Address -->
+    <!-- Modal -->
+    <div class="modal fade" id="addAddressModal" tabindex="-1" aria-labelledby="addAddressModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-body" id="pad">
+                    <!-- Set explicit dimensions for the map container -->
+                    <div class="modal-body d-flex">
+                        <!-- Map container -->
+                        <div id="map" style="height: 527px; width: 50%; position: relative; overflow: hidden;"></div>
+    
+                        <div class="bwQMZI" style="width: 50%; padding: 20px;">
+                            <div class="to_style_box">
+                                <div class="Select-placeholder" id="locationIndicator">E.g. Sector 32 or Kormangala or Park View Residency</div>
+                            </div>
+                            <h1 class="jmoJzL" style="margin-bottom: 15px; font-size: 20px;">
+                                Enter Complete Address
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" style="margin-left:120px"></button>
+                            </h1>
+    
+                            <div class="kSxeiC" style="font-size: 16px;">This allows us to find you easily and give you a timely delivery experience.</div>
+    
+                            <form action="/save_address" method="POST" class="a" style="margin-top: 25px;" onshown="clearFormFields()">
+                                {{ form.csrf_token }}
+    
+                                <!-- Hidden field for edit_mode -->
+                                
+    
+                                <div class="form-group" style="display: flex; margin-bottom: 15px;">
+                                    {{ form.title(class="select-control", style="font-size: 16px;width: 40%; padding-right: 20px;padding-left: 20px; border: var(--bs-border-width) solid var(--bs-border-color);border-radius: 0.3rem ;",id="title", required=True) }}
+                                    <div style="width: 50%;margin-left: 20px;">
+                                        {{ form.receiver_name(class="form-control", style="font-size: 16px; padding: 10px;",placeholder="Receiver's Name",id="receiver_name", required=True) }}
+                                    </div>
+                                </div>
+    
+                                <div class="form-group" style="margin-bottom: 15px;">
+                                    {{ form.delivery_address(class="form-control", style="font-size: 16px; padding: 10px;",placeholder="Delivery Address",id="delivery_address", required=True) }}
+                                </div>
+    
+                                <a class="b" style="font-size:15px; margin-bottom: 15px; margin-left: 250px;color:black">Get Own Location</a>
+    
+                                <div class="c" style="font-size: 16px; margin-bottom: 15px;">Save Address as</div>
+    
+                                <div class="options-container" style="background-color: white;outline: none;">
+                                    <div class="DeliveryAddressModal__AddresTypeWrapper-sc-1s23trb-25 cEavcC" style="background-color: white;width:250px;outline: none;">
+                                        <label class="saveAddressOptionLabel" style="background-color: white;width:250px;outline: none;width:250px;border:0px;margin-right: 10px;">
+                                            {{ form.save_address_as(id="selectedOption" ,name="saveAddressAs" ,value="Home" ,onchange="updateSelectedOption(this)",style="list-style-type:none;padding: 0px;margin-right: 10px;   border-radius:0.5rem; display: flex; ") }}
+                                        </label>
+                                    </div>
+                                </div>
+    
+                                <br><br><br>
+    
+                                <button type="submit" class="btn btn-success" style="width: 100%;" id="submitBtn">Save Address</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+
+    <!-- Bootstrap JS and Popper.js -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
+    
+    <!-- Include any additional JS files here -->
+    <script>
+        $(document).ready(function () {
+            $('.more-info-btn').on('click', function () {
+                var itemName = $(this).data('item-name');
+                var itemQuantity = $(this).data('item-quantity');
+                var itemPrice = $(this).data('item-price');
+                var itemImage = $(this).data('item-image');
+
+                $('#modalItemName').text(itemName);
+                $('#modalItemQuantity').text('Quantity: ' + itemQuantity);
+                $('#modalItemPrice').text('Price: Rs. ' + itemPrice);
+                $('#modalItemImage').attr('src', itemImage);
+            });
+
+        
+            // ... your existing code ...
+
+            $('.increaseQuantity').on('click', function () {
+                var currentQuantity = parseInt($(this).siblings('.modalItemQuantity').text());
+                var maxQuantity = parseInt($(this).closest('.quantity-control').data('max-quantity'));
+                if (currentQuantity < maxQuantity) {
+                    var item_id = $(this).closest('.quantity-control').data('item-id');
+                    updateQuantity(item_id, 'increase');
+                }
+                else{
+                    showMessageBox('Sorry, you can\'t add any more of this item');
+                }
+                
+            });
+
+            $('.decreaseQuantity').on('click', function () {
+                var item_id = $(this).closest('.quantity-control').data('item-id');
+                var currentQuantity = parseInt($(this).siblings('.modalItemQuantity').text());
+                if (currentQuantity > 1) {
+                    updateQuantity(item_id, 'decrease');
+                }
+               
+            });
+
+            function updateQuantity(item_id, action) {
+                $.ajax({
+                    url: '/' + action + '_quantity/' + item_id,
+                    type: 'GET',
+                    success: function (response) {
+                        if (response.success) {
+                            // Update the quantity display on success
+                            updateQuantityDisplay(item_id, action);
+                            // If needed, update total amount after modifying quantity
+                            updateTotalAmount();
+                        } else {
+                            showMessageBox('Error updating quantity: ' + response.message);
+                        }
+                    },
+                    error: function () {
+                        showMessageBox('Error updating quantity. Please try again.');
+                    }
+                });
+            }
+
+            function updateQuantityDisplay(item_id, action) {
+                var quantitySpan = $('[data-item-id="' + item_id + '"] .modalItemQuantity');
+                var currentQuantity = parseInt(quantitySpan.text());
+
+                if (action === 'increase') {
+                    quantitySpan.text(currentQuantity + 1);
+                } else if (action === 'decrease' && currentQuantity > 1) {
+                    quantitySpan.text(currentQuantity - 1);
+                }
+                
+            }
+
+            function showMessageBox(message) {
+                var messageBox = $('<div>', {
+                    class: 'alert alert-dark',
+                    role: 'alert',
+                    text: message,
+                    css: {
+                        position: 'fixed',
+                        top: '10px',
+                        right: '30px',
+                        zIndex: '9999',
+                        backgroundColor: '#45474B',
+                        color: 'white'
+
+                    },
+                });
+
+                $('body').append(messageBox);
+
+                // Auto-dismiss after 0.5 seconds
+                setTimeout(function () {
+                    messageBox.remove();
+                }, 1000);
+            }
+
+            $('.delete-btn').on('click', function () {
+                var item_id = $(this).data('item-id');
+                deleteCartItem(item_id);
+            });
+
+            function deleteCartItem(item_id) {
+                $.ajax({
+                    url: '/delete/' + item_id,
+                    type: 'GET',
+                    success: function (response) {
+                        if (response.success) {
+                            // Handle success, e.g., remove the card or update the view
+                            // You can add additional logic based on your requirements
+                            location.reload();
+                            showMessageBox("Item Deleted Successfully")
+                        } else {
+                            showMessageBox('Error deleting item: ' + response.message);
+                        }
+                    },
+                    error: function () {
+                        showMessageBox('Error deleting item. Please try again.');
+                    }
+                });
+            }
+            $('#closeModalBtn').on('click', function () {
+            // Close the modal
+            $('#yourModalId').modal('hide');
+            });
+
+            // Handling quantity decrease
+            function updateTotalAmount() {
+            var totalAmount = 0;
+            {% for cart_item, item, category in cart_items %}
+                totalAmount += parseInt($('[data-item-id="{{ item.id }}"] .modalItemQuantity').text()) * {{ item.price }};            {% endfor %}
+            $('#totalAmount').text(totalAmount.toFixed(2)); // Adjust decimal places as needed
+            }
+
+            // Update total amount when the document is ready
+            updateTotalAmount();
+
+
+            $('#proceedToCheckoutBtn').on('click', function () {
+            // You can add additional logic here if needed before showing the address modal
+            // For example, update the content of the modal based on user's data
+
+            // Show the address modal
+                 $('#addressModal').modal('show');
+            });
+
+           
+        });
+
+         
+        
+
+
+$('#addAddressModal').on('shown.bs.modal', function () {
+    initMap();
+});
+
+let map;
+
+
+
+
+function initMap() {
+        // Initialize the map
+        var map = new google.maps.Map(document.getElementById('map'), {
+            center: {lat: -34.397, lng: 150.644},
+            zoom: 15
+        });
+
+        // Initialize the Places service
+         // Initialize the Places service
+         var placesService = new google.maps.places.PlacesService(map);
+
+        // Initialize the marker
+        var marker = new google.maps.Marker({
+            map: map,
+            draggable: true, // Make the marker draggable
+        });
+
+        // Get the input element for the Delivery Address
+        var deliveryAddressInput = document.querySelector('input[placeholder="Delivery Address"]');
+
+        // Set up an event listener for when the input changes
+        deliveryAddressInput.addEventListener('input', function () {
+            // Get the value of the input
+            var address = deliveryAddressInput.value;
+
+            // Perform a Places Autocomplete search
+            placesService.textSearch({query: address}, function(results, status) {
+                if (status === google.maps.places.PlacesServiceStatus.OK) {
+                    // Assuming the first result is the best match
+                    var location = results[0].geometry.location;
+
+                    // Center the map on the found location
+                    map.setCenter(location);
+
+                    // Set the marker position
+                    marker.setPosition(location);
+                }
+            });
+        });
+
+        // Set up an event listener for when the marker is dragged
+        google.maps.event.addListener(marker, 'dragend', function () {
+            // Update the input field with the new location address
+            geocodeLatLng(marker.getPosition());
+        });
+
+        // Function to reverse geocode the LatLng to an address
+        function geocodeLatLng(latlng) {
+            var geocoder = new google.maps.Geocoder();
+            geocoder.geocode({'location': latlng}, function(results, status) {
+                if (status === 'OK') {
+                    if (results[0]) {
+                        // Update the input field with the address
+                        deliveryAddressInput.value = results[0].formatted_address;
+                    }
+                }
+            });
+        }
+    }
+    function updateSelectedOption(radioButton) {
+        const optionLabels = document.querySelectorAll('.saveAddressOptionLabel');
+
+        optionLabels.forEach(label => label.classList.remove('selected'));
+        radioButton.closest('label').classList.add('selected');
+
+        document.getElementById('selectedOption').value = radioButton.value;
+    
+    }
+    const mapElement = document.getElementById('map');
+    const locationIndicatorElement = document.querySelector('#locationIndicator');
+    const getLocationBtn = document.querySelector('.b');
+    
+    // Initialize marker variable
+    let marker;
+
+    getLocationBtn.addEventListener('click', () => {
+        navigator.geolocation.getCurrentPosition(position => {
+            console.log(position)
+            const { latitude, longitude } = position.coords;
+            const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`;
+            fetch(url)
+                .then(res => res.json())
+                .then(data => {
+                    const address = data.address;
+                    const locationString = `${address.suburb || ''}, ${address.city || address.town || address.village || ''}, ${address.country || ''}`;
+                    locationIndicatorElement.innerText = locationString;
+                    console.table(address);
+
+                    // Initialize map centered on the user's location
+                    const map = new google.maps.Map(mapElement, {
+                        center: { lat: latitude, lng: longitude },
+                        zoom: 15
+                    });
+
+                    // Add a marker to the map at the user's location
+                    marker = new google.maps.Marker({
+                        position: { lat: latitude, lng: longitude },
+                        map: map,
+                        title: 'Your Location',
+                        draggable: true
+                    });
+
+                    // Update the input field with the new location address when marker is dragged
+                    google.maps.event.addListener(marker, 'dragend', function () {
+                        geocodeLatLng(marker.getPosition());
+                    });
+                })
+                .catch(() => {
+                    console.log('Error fetching data from API');
+                });
+        });
+    });
+    // Function to reverse geocode and update the address when marker is dragged
+    function geocodeLatLng(latlng) {
+        const geocoder = new google.maps.Geocoder();
+        geocoder.geocode({ 'location': latlng }, function (results, status) {
+            if (status === 'OK') {
+                if (results[0]) {
+                    const address = results[0].formatted_address;
+                    locationIndicatorElement.innerText = address;
+                } else {
+                    console.log('No results found');
+                }
+            } else {
+                console.log('Geocoder failed due to: ' + status);
+            }
+        });
+    }
+    function showOptions(index) {
+        var options = document.getElementById('options' + index);
+        options.style.display = (options.style.display === 'none' || options.style.display === '') ? 'block' : 'none';
+    }
+
+    function editAddress(addressId) {
+        // Make an AJAX request to get the address details
+        console.log(addressId);
+        fetch('/edit_address/' + addressId)
+            .then(response => {
+                console.log('Response status:', response.status);
+                return response.json();
+            })
+            .then(data => {
+                console.log('Data received:', data);
+                // Populate the addAddressModal with the fetched address details
+                document.getElementById('title').value = data.title;
+                document.getElementById('receiver_name').value = data.receiver_name;
+                document.getElementById('delivery_address').value = data.delivery_address;
+                console.log(data.address_type)
+                document.getElementById('selectedOption').value = data.address_type;
+
+                // Set the value of edit_mode to true
+                document.getElementById('editModeField').value = 'true';
+
+                // Change the form action to /update_address
+                document.getElementById('submitBtn').innerText = 'Update Address';
+                document.querySelector('form').action = '/update_address/' + addressId;
+
+                // Show the modal
+                $('#addAddressModal').modal('show');
+                // Set the value of edit_mode to false
+               
+                
+
+            })
+            .catch(error => console.error('Error:', error));
+    }
+
+    function updateAddress(addressId) {
+    // Make an AJAX request to update the address details
+    console.log("Update Address", addressId);
+    fetch('/edit_address/' + addressId , {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            edit_mode: true,  // Set edit_mode to true
+            title: document.getElementById('title').value,
+            receiver_name: document.getElementById('receiver_name').value,
+            delivery_address: document.getElementById('delivery_address').value,
+            address_type: document.getElementById('selectedOption').value,
+        }),
+    })
+        .then(response => response.json())
+        .then(data => {
+            // Handle success, you might want to update the UI accordingly
+            console.log(data.message);
+            document.getElementById('editModeField').value = 'false';
+
+                // Change the form action to /update_address
+                document.getElementById('submitBtn').innerText = 'Save Address';
+                document.querySelector('form').action = '/save_address/' + addressId;
+
+        })
+        .catch(error => console.error('Error:', error));
+    }
+
+function deleteAddress(addressId) {
+    // Make an AJAX request to delete the address
+    fetch('/delete_address/' + addressId, { method: 'GET' })
+        .then(response => response.json())
+        .then(data => {
+            // Handle success or error response
+            
+            console.log(data.message || data.error);
+            if (data.success) {
+                // Handle success, e.g., remove the card or update the view
+                // You can add additional logic based on your requirements
+                location.reload();
+                showMessageBox("Address Deleted Successfully");
+            } else {
+                showMessageBox('Error deleting address: ' + data.message);
+            }
+        })
+        .catch(error => console.error('Error:', error));
+}
+
+function clearFormFields() {
+        // Clear the form fields when the modal is shown
+        document.getElementById('title').value = '';
+        document.getElementById('receiver_name').value = '';
+        document.getElementById('delivery_address').value = '';
+        // document.getElementById('selectedOption').value = 'Home'; // Assuming 'Home' is the default value
+}  
+function showMessageBox(message) {
+    var messageBox = document.createElement('div');
+    messageBox.className = 'alert alert-dark';
+    messageBox.setAttribute('role', 'alert');
+    messageBox.textContent = message;
+    
+    Object.assign(messageBox.style, {
+        position: 'fixed',
+        top: '10px',
+        right: '30px',
+        zIndex: '9999',
+        backgroundColor: '#45474B',
+        color: 'white'
+    });
+
+    document.body.appendChild(messageBox);
+
+    // Auto-dismiss after 0.5 seconds
+    setTimeout(function () {
+        messageBox.remove();
+    }, 1000);
+}     
+function updateSelectedAddress(addressId) {
+    document.getElementById('selectedAddress').value = addressId;
+}
+
+function proceedToPay() {
+    var selectedAddress = document.getElementById('selectedAddress').value;
+    if (selectedAddress !== '') {
+        // If an address is selected, submit the form
+        var redirectUrl = '/checkout/' + selectedAddress;
+
+        // Redirect to the URL
+        window.location.href = redirectUrl;
+    } else {
+        // If no address is selected, show an alert or handle it accordingly
+        alert('Please select an address before proceeding to pay.');
+    }
+} 
+
+</script>
+        <!-- <script>(g=>{var h,a,k,p="The Google Maps JavaScript API",c="google",l="importLibrary",q="__ib__",m=document,b=window;b=b[c]||(b[c]={});var d=b.maps||(b.maps={}),r=new Set,e=new URLSearchParams,u=()=>h||(h=new Promise(async(f,n)=>{await (a=m.createElement("script"));e.set("libraries",[...r]+"");for(k in g)e.set(k.replace(/[A-Z]/g,t=>"_"+t[0].toLowerCase()),g[k]);e.set("callback",c+".maps."+q);a.src=`https://maps.${c}apis.com/maps/api/js?`+e;d[q]=f;a.onerror=()=>h=n(Error(p+" could not load."));a.nonce=m.querySelector("script[nonce]")?.nonce||"";m.head.append(a)}));d[l]?console.warn(p+" only loads once. Ignoring:",g):d[l]=(f,...n)=>r.add(f)&&u().then(()=>d[l](f,...n))})
+        ({key: "AIzaSyAqPekF8eGHrEADspHyIKC0q-Gf0wnc39c", v: "weekly"});</script> -->
+
+    
+    
+</body>
+</html>

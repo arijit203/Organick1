@@ -30,7 +30,7 @@
           <li class="nav_item"><a href="shop" class="nav_link">Shop</a></li>
           <li class="nav_item"><a href="portfolio" class="nav_link">Projects</a></li>
           <li class="nav_item"><a href="blog" class="nav_link">News</a></li>
-          <li class="nav_item"><a href="contact'" class="nav_link">Contact Us</a></li>
+          <li class="nav_item"><a href="contact" class="nav_link">Contact_Us</a></li>
         </ul>
         <div class="nav_list1">
           <div class="user_button" id="user-btn">
@@ -94,6 +94,7 @@
         
                 <a href="{{ url_for('user_logout') }}" class="btn">Logout</a>
             {% else %}
+                {{ form.csrf_token }}
                 <h3>Login Form</h3>
                 {{ form.email(class="box", placeholder="Enter email", required=true) }}
                 {{ form.password_hash(class="box", placeholder="Enter Password", required=true) }}
@@ -106,6 +107,7 @@
                 <button type="submit" class="btn">Login Now</button>
                 <p>Forget password? <a href="#">Click here</a></p>
                 <p>Don't have an account? <a href="user_register">Create one</a></p>
+                <p>Not a User? <a href='manager_login'>Manager</a></p>
             {% endif %}
         </form>
       </div>
@@ -176,7 +178,7 @@
       <div class="container">
         <div class="section_header_center">
           <h5 class="header_section_title_2">Categories</h5>
-          <h2 class="header_section_title_1">Out Products</h2>
+          <h2 class="header_section_title_1">Our Products</h2>
         </div>
         <div class="products">
           <div class="product_card">

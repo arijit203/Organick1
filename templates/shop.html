@@ -30,7 +30,7 @@
           <li class="nav_item"><a href="shop" class="nav_link">Shop</a></li>
           <li class="nav_item"><a href="portfolio" class="nav_link">Projects</a></li>
           <li class="nav_item"><a href="blog" class="nav_link">News</a></li>
-          <li class="nav_item"><a href="contact'" class="nav_link">Contact Us</a></li>
+          <li class="nav_item"><a href="contact" class="nav_link">Contact</a></li>
         </ul>
         <div class="nav_list1">
           <div class="user_button" id="user-btn">
@@ -48,45 +48,33 @@
           </form>
         </div>
         <div class="shopping-cart">
-          
-          <div class="box">
-            <i class="fas fa-times"></i>
-              <img clas="imi" src="static/images/p-2.png" alt="">
-              <div class="content">
-                <h3>organic food</h3>
-                <span class="quantity">1</span>  
-                <span class="multiply">x</span>  
-                <span class="price">$18.99</span>  
-              </div>
-            
-          </div>
-          <div class="box">
-            <i class="fas fa-times"> </i>
-              <img clas="imi" src="static/images/p-4.png" alt="">
-              <div class="content">
-                <h3>organic food</h3>
-                <span class="quantity">1</span>  
-                <span class="multiply">x</span>  
-                <span class="price">$18.99</span>  
-              </div>
-            
-          </div>
-          <div class="box">
-            <i class="fas fa-times"></i>
-              <img clas="imi" src="static/images/p-7.png" alt="">
-              <div class="content">
-                <h3>organic food</h3>
-                <span class="quantity">1</span>  
-                <span class="multiply">x</span>  
-                <span class="price">$18.99</span>  
-              </div>
-            
-          </div>
-          <h3 class="total" > total : <span>$56.97</span></h3>
-            <a href="#" class="btn"> checkout cart</a>
-       
-        
-        </div>
+          {% if current_user.is_authenticated %}
+              {% if cart_items %}
+                  {% for cart_item,item,category in cart_items %}
+                      <div class="box">
+                        <a href="/delete_from_cart/{{ cart_item.item_id }}">
+                          <i class="fas fa-times"></i>
+                        </a>
+                        
+                        <img class="imi" src="static/images/items/{{ item.name|replace(' ', '_')|lower }}.png" alt="{{ item.name }}">
+                        <div class="content">
+                            <h3>{{ item.name }}</h3>
+                            <span class="quantity">{{ cart_item.quantity }}</span>
+                            <span class="multiply">x</span>
+                            <span class="price">${{ item.price }}</span>
+                        </div>
+                      </div>
+                  {% endfor %}
+                  <h3 class="total">Total: <span>${{ total_price }}</span></h3>
+                  <a href="/cart" class="btn">Checkout Cart</a>
+              {% else %}
+                  <p>Your cart is empty.</p>
+              {% endif %}
+          {% else %}
+              <p>Please log in to view your cart.</p>
+          {% endif %}
+      </div>
+      
         <form method="POST" action="user_login"  class="login-form">
           {% if current_user.is_authenticated %}
               <h3>Welcome, {{ current_user.username }}!</h3>
@@ -124,155 +112,56 @@
         </div>
     </header>
    
+    
     <section class="product">
-        <div class="container">
+      <div class="container">
           <div class="section_header_center">
-            <h5 class="header_section_title_2">Categories</h5>
-            <h2 class="header_section_title_1">Our Products</h2>
+              <h5 class="header_section_title_2">Categories</h5>
+              <h2 class="header_section_title_1">Our Products</h2>
           </div>
           <div class="products">
-            <div class="product_card">
-              <img src="static/images/p-1.png" alt="" class="product_img" />
-              <p class="product_tag">Vegetable</p>
-              <div class="product_body">
-                <h3 class="product_title">Calabrese Broccoli</h3>
-                <div class="product_footer">
-                  <h4 class="product_price">Rs. 14.00/kg</h4>
-                  <div class="product_rating">
-                    <img src="static/images/icon/star.png" alt="" class="star">
-                    <img src="static/images/icon/star.png" alt="" class="star">
-                    <img src="static/images/icon/star.png" alt="" class="star">
-                    <img src="static/images/icon/star.png" alt="" class="star">
-                    <img src="static/images/icon/star.png" alt="" class="star">
+              {% for category in categories %}
+                  <div class="category_row">
+                      <h2 class="category_header">{{ category.category_name }}</h2>
+                      {% for item in category_items_dict[category.category_id][:7] %}
+                          <div class="product_card">
+                              <div class="product_body">
+                                  <img src="static/images/items/{{ item.name|replace(' ', '_')|lower }}.png" alt="{{ item.name }}" class="product_img" />
+                                  <h3 class="product_title">{{ item.name }}</h3>
+                                  <div class="product_footer">
+                                      <h4 class="product_price">Rs. {{ item.price }} per {{ item.unit[item.unit.find("/")+1:] }}</h4>
+                                      <div class="product_rating">
+                                          {% for i in range(5) %}
+                                              <img src="static/images/icon/star.png" alt="" class="star">
+                                          {% endfor %}
+                                      </div>
+                                      <br>        
+                                  </div>
+                                  <div class="line">
+                                    {% if item.quantity <= 5 %}
+                                      <span class="low-stock" style="color: red; font-size: 1.2rem;" >Low Stock</span>
+                                    {% endif %}
+                                  </div>
+                              </div>
+                              <form method="post" action="/add_to_cart" class="add-to-cart-form">
+                                {{ form.csrf_token }}
+                                <input type="hidden" name="item_id" value="{{ item.id }}">
+                                <input type="hidden" name="category_id" value="{{ item.category_id }}">
+                                <input type="number" name="quantity" class="quantity_box" placeholder="Quantity" min="1" max="{{ item.quantity }}">
+                                <input type="hidden" name="cart_id" value="{{ cart_item.cart_id if cart_item else '' }}">
+                                <button type="submit" class="add_to_cart_btn">
+                                    <img src="static/images/cart.png" alt="Add to Cart" class="cart_symbol">
+                                </button>
+                              </form>  
+                          </div>
+                      {% endfor %}
                   </div>
-                </div>
-              </div>
-            </div>
-            <div class="product_card">
-              <img src="static/images/p-1.png" alt="" class="product_img">
-              <p class="product_tag">Vegetable</p>
-              <div class="product_body">
-                <h3 class="product_title">Calabrese Broccoli</h3>
-                <div class="product_footer">
-                  <h4 class="product_price">Rs. 14.00/kg</h4>
-                  <div class="product_rating">
-                    <img src="static/images/icon/star.png" alt="" class="star">
-                    <img src="static/images/icon/star.png" alt="" class="star">
-                    <img src="static/images/icon/star.png" alt="" class="star">
-                    <img src="static/images/icon/star.png" alt="" class="star">
-                    <img src="static/images/icon/star.png" alt="" class="star">
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div class="product_card">
-              <img src="static/images/p-1.png" alt="" class="product_img">
-              <p class="product_tag">Vegetable</p>
-              <div class="product_body">
-                <h3 class="product_title">Calabrese Broccoli</h3>
-                <div class="product_footer">
-                  <h4 class="product_price">Rs. 14.00/kg</h4>
-                  <div class="product_rating">
-                    <img src="static/images/icon/star.png" alt="" class="star">
-                    <img src="static/images/icon/star.png" alt="" class="star">
-                    <img src="static/images/icon/star.png" alt="" class="star">
-                    <img src="static/images/icon/star.png" alt="" class="star">
-                    <img src="static/images/icon/star.png" alt="" class="star">
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div class="product_card">
-              <img src="static/images/p-1.png" alt="" class="product_img">
-              <p class="product_tag">Vegetable</p>
-              <div class="product_body">
-                <h3 class="product_title">Calabrese Broccoli</h3>
-                <div class="product_footer">
-                  <h4 class="product_price">Rs. 14.00/kg</h4>
-                  <div class="product_rating">
-                    <img src="static/images/icon/star.png" alt="" class="star">
-                    <img src="static/images/icon/star.png" alt="" class="star">
-                    <img src="static/images/icon/star.png" alt="" class="star">
-                    <img src="static/images/icon/star.png" alt="" class="star">
-                    <img src="static/images/icon/star.png" alt="" class="star">
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div class="product_card">
-              <img src="static/images/p-1.png" alt="" class="product_img">
-              <p class="product_tag">Vegetable</p>
-              <div class="product_body">
-                <h3 class="product_title">Calabrese Broccoli</h3>
-                <div class="product_footer">
-                  <h4 class="product_price">Rs. 14.00/kg</h4>
-                  <div class="product_rating">
-                    <img src="static/images/icon/star.png" alt="" class="star">
-                    <img src="static/images/icon/star.png" alt="" class="star">
-                    <img src="static/images/icon/star.png" alt="" class="star">
-                    <img src="static/images/icon/star.png" alt="" class="star">
-                    <img src="static/images/icon/star.png" alt="" class="star">
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div class="product_card">
-              <img src="static/images/p-1.png" alt="" class="product_img">
-              <p class="product_tag">Vegetable</p>
-              <div class="product_body">
-                <h3 class="product_title">Calabrese Broccoli</h3>
-                <div class="product_footer">
-                  <h4 class="product_price">Rs. 14.00/kg</h4>
-                  <div class="product_rating">
-                    <img src="static/images/icon/star.png" alt="" class="star">
-                    <img src="static/images/icon/star.png" alt="" class="star">
-                    <img src="static/images/icon/star.png" alt="" class="star">
-                    <img src="static/images/icon/star.png" alt="" class="star">
-                    <img src="static/images/icon/star.png" alt="" class="star">
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div class="product_card">
-              <img src="static/images/p-1.png" alt="" class="product_img">
-              <p class="product_tag">Vegetable</p>
-              <div class="product_body">
-                <h3 class="product_title">Calabrese Broccoli</h3>
-                <div class="product_footer">
-                  <h4 class="product_price">Rs. 14.00/kg</h4>
-                  <div class="product_rating">
-                    <img src="static/images/icon/star.png" alt="" class="star">
-                    <img src="static/images/icon/star.png" alt="" class="star">
-                    <img src="static/images/icon/star.png" alt="" class="star">
-                    <img src="static/images/icon/star.png" alt="" class="star">
-                    <img src="static/images/icon/star.png" alt="" class="star">
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div class="product_card">
-              <img src="static/images/p-1.png" alt="" class="product_img">
-              <p class="product_tag">Vegetable</p>
-              <div class="product_body">
-                <h3 class="product_title">Calabrese Broccoli</h3>
-                <div class="product_footer">
-                  <h4 class="product_price">Rs. 14.00/kg</h4>
-                  <div class="product_rating">
-                    <img src="static/images/icon/star.png" alt="" class="star">
-                    <img src="static/images/icon/star.png" alt="" class="star">
-                    <img src="static/images/icon/star.png" alt="" class="star">
-                    <img src="static/images/icon/star.png" alt="" class="star">
-                    <img src="static/images/icon/star.png" alt="" class="star">
-                  </div>
-                </div>
-              </div>
-            </div>
+              {% endfor %}
           </div>
-          <div class="button">
-            <button class="products_btn">Load More</button>
-          </div>
-        </div>
-      </section>
+      </div>
+  </section>
+  
+  
     <section class="subscribe">
       <div class="container sub_container">
         <h2 class="subscribe_text">Subscribe to <br /> our Newsletter</h2>
@@ -296,6 +185,7 @@
   <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
   <script src="static/script.js" lang="javascript"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
 
   <!-- Initialize Swiper -->
   <script>
@@ -308,6 +198,33 @@
       var loginBox = document.getElementById("loginBox");
       loginBox.style.display = loginBox.style.display === "none" ? "block" : "none";
     }
+    $(document).ready(function () {
+      function showMessageBox(message) {
+        var messageBox = $('<div>', {
+            class: 'alert alert-dark',
+            role: 'alert',
+            text: message,
+            css: {
+                position: 'fixed',
+                top: '10px',
+                right: '30px',
+                zIndex: '9999',
+                backgroundColor: '#45474B',
+                color: 'white'
+
+            },
+        });
+
+        $('body').append(messageBox);
+
+        // Auto-dismiss after 0.5 seconds
+        setTimeout(function () {
+            messageBox.remove();
+        }, 1000);
+      }
+    
+    })
+
   </script>
   </body>
 </html>
