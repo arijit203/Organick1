@@ -12,7 +12,7 @@
   </head>
   <body>
     {% for message in get_flashed_messages() %}
-    <div class="alert alert-secondary alert-dismissible fade show" role="alert">
+    <div class="alert alert-secondary alert-dismissible fade show" role="alert" id="flashMessage">
         <strong>{{message}}</strong> 
         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
       </div>
@@ -30,7 +30,7 @@
           <li class="nav_item"><a href="shop" class="nav_link">Shop</a></li>
           <li class="nav_item"><a href="portfolio" class="nav_link">Projects</a></li>
           <li class="nav_item"><a href="blog" class="nav_link">News</a></li>
-          <li class="nav_item"><a href="contact" class="nav_link">Contact_Us</a></li>
+          <li class="nav_item"><a href="contact" class="nav_link">Contact</a></li>
         </ul>
         <div class="nav_list1">
           <div class="user_button" id="user-btn">
@@ -48,68 +48,59 @@
           </form>
         </div>
         <div class="shopping-cart">
-          
-          <div class="box">
-            <i class="fas fa-times"></i>
-              <img clas="imi" src="static/images/p-2.png" alt="">
-              <div class="content">
-                <h3>organic food</h3>
-                <span class="quantity">1</span>  
-                <span class="multiply">x</span>  
-                <span class="price">$18.99</span>  
+          {% if current_user.is_authenticated %}
+              {% if cart_items %}
+                  {% for cart_item,item,category in cart_items %}
+                      <div class="box">
+                        <a href="/delete_from_cart/{{ cart_item.item_id }}">
+                          <i class="fas fa-times"></i>
+                        </a>
+                        
+                        <img class="imi" src="static/images/items/{{ item.name|replace(' ', '_')|lower }}.png" alt="{{ item.name }}">
+                        <div class="content">
+                            <h3>{{ item.name }}</h3>
+                            <span class="quantity">{{ cart_item.quantity }}</span>
+                            <span class="multiply">x</span>
+                            <span class="price">₹{{ item.price }}</span>
+                        </div>
+                      </div>
+                  {% endfor %}
+                  <h3 class="total">Total: <span>₹{{ total_price }}</span></h3>
+                  <a href="/cart" class="btn">Checkout Cart</a>
+              {% else %}
+                  <p>Your cart is empty.</p>
+              {% endif %}
+          {% else %}
+              <p>Please log in to view your cart.</p>
+          {% endif %}
+      </div>
+      
+        <form method="POST" action="user_login"  class="login-form">
+          {% if current_user.is_authenticated %}
+              
+              <h3>Welcome, {{ current_user.username }}!</h3>
+              <!-- Display other user information as needed -->
+              <a href="{{ url_for('user_orders') }}" class="btn1 btn-your-orders" style="color: black;">Your Orders</a>
+              <a href="{{ url_for('user_logout') }}" class="btn">Logout</a>
+          {% else %}
+              {{ form.csrf_token }}
+              <h3>Login Form</h3>
+              {{ form.email(class="box", placeholder="Enter email", required=true) }}
+              {{ form.password_hash(class="box", placeholder="Enter Password", required=true) }}
+      
+              <div class="remember">
+                  <input type="checkbox" name="" id="remember-me">
+                  <label for='remember-me'>Remember me</label>
               </div>
-            
-          </div>
-          <div class="box">
-            <i class="fas fa-times"> </i>
-              <img clas="imi" src="static/images/p-4.png" alt="">
-              <div class="content">
-                <h3>organic food</h3>
-                <span class="quantity">1</span>  
-                <span class="multiply">x</span>  
-                <span class="price">$18.99</span>  
-              </div>
-            
-          </div>
-          <div class="box">
-            <i class="fas fa-times"></i>
-              <img clas="imi" src="static/images/p-7.png" alt="">
-              <div class="content">
-                <h3>organic food</h3>
-                <span class="quantity">1</span>  
-                <span class="multiply">x</span>  
-                <span class="price">$18.99</span>  
-              </div>
-            
-          </div>
-          <h3 class="total" > total : <span>$56.97</span></h3>
-            <a href="#" class="btn"> checkout cart</a>
-       
-        
-        </div>
-          <form method="POST" action="user_login" class="login-form">
-            {% if current_user.is_authenticated %}
-                <h3>Welcome, {{ current_user.username }}!</h3>
-                <!-- Display other user information as needed -->
-        
-                <a href="{{ url_for('user_logout') }}" class="btn">Logout</a>
-            {% else %}
-                {{ form.csrf_token }}
-                <h3>Login Form</h3>
-                {{ form.email(class="box", placeholder="Enter email", required=true) }}
-                {{ form.password_hash(class="box", placeholder="Enter Password", required=true) }}
-        
-                <div class="remember">
-                    <input type="checkbox" name="" id="remember-me">
-                    <label for='remember-me'>Remember me</label>
-                </div>
-                
-                <button type="submit" class="btn">Login Now</button>
-                <p>Forget password? <a href="#">Click here</a></p>
-                <p>Don't have an account? <a href="user_register">Create one</a></p>
-                <p>Not a User? <a href='manager_login'>Manager</a></p>
-            {% endif %}
-        </form>
+              
+              <button type="submit" class="btn">Login Now</button>
+              <p>Forget password? <a href="#">Click here</a></p>
+              <p>Don't have an account? <a href="user_register">Create one</a></p>
+              <p>Not a User? <a href="manager_login">Manager</a></p>
+          {% endif %}
+      </form>
+      
+      
       </div>
     </nav>
 
@@ -138,6 +129,7 @@
           <div class="ad_content">
             <div class="ad_title_2">Offer!</div>
             <h2 class="ad_title_1">Get 10% off on Vegetables</h2>
+            <h4>Use code FRST20</h4>
           </div>
         </div>
       </div>
@@ -168,21 +160,21 @@
               
             </div>
           </div>
-          <button class="about_btn"><a href="./shop.html">Shop Now</a> <img src="static/images/icon/arrow.png" alt="" class="btn_icon"></button>
+          <a href="{{ url_for('shop') }}"><button class="about_btn" >Shop Now <img src="static/images/icon/arrow.png" alt="" class="btn_icon"></button></a>
       </div>
       </div>
       
     </section>
     <!-- 4th page -->
-    <section class="product">
-      <div class="container">
+    <section class="product" style="height: 1030px;">
+      <div class="container6">
         <div class="section_header_center">
           <h5 class="header_section_title_2">Categories</h5>
           <h2 class="header_section_title_1">Our Products</h2>
         </div>
         <div class="products">
           <div class="product_card">
-            <img src="static/images/p-1.png" alt="" class="product_img" />
+            <img src="static/images/items/Calabrese_Broccoli.png" alt="" class="product_img" />
             <p class="product_tag">Vegetable</p>
             <div class="product_body">
               <h3 class="product_title">Calabrese Broccoli</h3>
@@ -199,7 +191,7 @@
             </div>
           </div>
           <div class="product_card">
-            <img src="static/images/p-1.png" alt="" class="product_img">
+            <img src="static/images/items/Calabrese_Broccoli.png" alt="" class="product_img">
             <p class="product_tag">Vegetable</p>
             <div class="product_body">
               <h3 class="product_title">Calabrese Broccoli</h3>
@@ -216,7 +208,7 @@
             </div>
           </div>
           <div class="product_card">
-            <img src="static/images/p-1.png" alt="" class="product_img">
+            <img src="static/images/items/Calabrese_Broccoli.png" alt="" class="product_img">
             <p class="product_tag">Vegetable</p>
             <div class="product_body">
               <h3 class="product_title">Calabrese Broccoli</h3>
@@ -233,7 +225,7 @@
             </div>
           </div>
           <div class="product_card">
-            <img src="static/images/p-1.png" alt="" class="product_img">
+            <img src="static/images/items/Calabrese_Broccoli.png" alt="" class="product_img">
             <p class="product_tag">Vegetable</p>
             <div class="product_body">
               <h3 class="product_title">Calabrese Broccoli</h3>
@@ -250,7 +242,7 @@
             </div>
           </div>
           <div class="product_card">
-            <img src="static/images/p-1.png" alt="" class="product_img">
+            <img src="static/images/items/Calabrese_Broccoli.png" alt="" class="product_img">
             <p class="product_tag">Vegetable</p>
             <div class="product_body">
               <h3 class="product_title">Calabrese Broccoli</h3>
@@ -267,7 +259,7 @@
             </div>
           </div>
           <div class="product_card">
-            <img src="static/images/p-1.png" alt="" class="product_img">
+            <img src="static/images/items/Calabrese_Broccoli.png" alt="" class="product_img">
             <p class="product_tag">Vegetable</p>
             <div class="product_body">
               <h3 class="product_title">Calabrese Broccoli</h3>
@@ -284,7 +276,7 @@
             </div>
           </div>
           <div class="product_card">
-            <img src="static/images/p-1.png" alt="" class="product_img">
+            <img src="static/images/items/Calabrese_Broccoli.png" alt="" class="product_img">
             <p class="product_tag">Vegetable</p>
             <div class="product_body">
               <h3 class="product_title">Calabrese Broccoli</h3>
@@ -301,7 +293,7 @@
             </div>
           </div>
           <div class="product_card">
-            <img src="static/images/p-1.png" alt="" class="product_img">
+            <img src="static/images/items/Calabrese_Broccoli.png" alt="" class="product_img">
             <p class="product_tag">Vegetable</p>
             <div class="product_body">
               <h3 class="product_title">Calabrese Broccoli</h3>
@@ -319,7 +311,7 @@
           </div>
         </div>
         <div class="button">
-          <button class="products_btn">Load More</button>
+          <a class="products_btn" href="shop">Load More</a>
         </div>
       </div>
     </section>
@@ -327,7 +319,7 @@
     <!-- 5th Page -->
     <section class="review">
         <!-- Swiper -->
-      <div class="container review_container">
+      <div class="container4 review_container">
         <div class="section_header_center">
           <h5 class="header_section_title_2">Testimonial</h5>
           <h2 class="header_section_title_1">Our Products</h2>
@@ -422,7 +414,7 @@
         </div>
         <div class="products">
           <div class="product_card">
-            <img src="static/images/p-1.png" alt="" class="product_img" />
+            <img src="static/images/items/Calabrese_Broccoli.png" alt="" class="product_img" />
             <p class="product_tag">Vegetable</p>
             <div class="product_body">
               <h3 class="product_title">Calabrese Broccoli</h3>
@@ -439,7 +431,7 @@
             </div>
           </div>
           <div class="product_card">
-            <img src="static/images/p-1.png" alt="" class="product_img">
+            <img src="static/images/items/Calabrese_Broccoli.png" alt="" class="product_img">
             <p class="product_tag">Vegetable</p>
             <div class="product_body">
               <h3 class="product_title">Calabrese Broccoli</h3>
@@ -456,7 +448,7 @@
             </div>
           </div>
           <div class="product_card">
-            <img src="static/images/p-1.png" alt="" class="product_img">
+            <img src="static/images/items/Calabrese_Broccoli.png" alt="" class="product_img">
             <p class="product_tag">Vegetable</p>
             <div class="product_body">
               <h3 class="product_title">Calabrese Broccoli</h3>
@@ -473,7 +465,7 @@
             </div>
           </div>
           <div class="product_card">
-            <img src="static/images/p-1.png" alt="" class="product_img">
+            <img src="static/images/items/Calabrese_Broccoli.png" alt="" class="product_img">
             <p class="product_tag">Vegetable</p>
             <div class="product_body">
               <h3 class="product_title">Calabrese Broccoli</h3>
@@ -493,7 +485,7 @@
           
         </div>
         <div class="button">
-          <button class="products_btn product_bg_btn">Load More</button>
+          <a class="products_btn product_bg_btn"  href="shop">Load More</a>
         </div>
       </div>
     </section>
@@ -509,13 +501,13 @@
       </div>
     </section>
     <section class="blog">
-      <div class="blog_container container">
+      <div class="blog_container container3">
         <div class="section_header_flex">
           <span>
             <h5 class="header_section_title_2">Testimonial</h5>
             <h2 class="header_section_title_1">Our Products</h2>
           </span>
-          <button class="section_header_button">Load More <img src="static/images/icon/arrow.png" alt="" class="btn_icon"></button>
+          <a class="section_header_button"  href="{{url_for('blog')}}">Load More <img src="static/images/icon/arrow.png" alt="" class="btn_icon"></a>
 
         </div>
         <div class="blogs">
@@ -586,6 +578,9 @@
       var loginBox = document.getElementById("loginBox");
       loginBox.style.display = loginBox.style.display === "none" ? "block" : "none";
     }
+    setTimeout(function() {
+            $('#flashMessage').alert('close');
+        }, 2000);
   </script>
   </body>
 </html>

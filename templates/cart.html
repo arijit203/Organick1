@@ -1,15 +1,20 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Register</title>
+    <title>Cart</title>
     <!-- Bootstrap CSS -->
     
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">    <!-- Include any additional CSS files here -->
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/cart_component.css') }}">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous"> 
+    <link
+    rel="stylesheet"
+    href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Recursive:wght@300&display=swap" />
     <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAqPekF8eGHrEADspHyIKC0q-Gf0wnc39c&libraries=places&callback=initMap" async defer></script>
+    <link rel="stylesheet" href="static/css/cart_component_2.css" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/cart_component.css') }}">
     <style>
         .custom-modal-content {
             /* background-color: grey;  */
@@ -35,7 +40,22 @@
         display: flex;
         /* Add any additional styles for the container here */
     }
+    .container {
+    position: relative;
+  }
 
+  .nav {
+    position: fixed;
+    width: 100%;
+    top: 0;
+    left: 0;
+    z-index: 1000; /* Ensure the nav is on top */
+   
+  }
+
+  .cart-container {
+    margin-top: 200px; /* Adjust this value based on the height of your nav */
+  }
    
 
     .saveAddressOptionLabel {
@@ -61,17 +81,35 @@
 <body>
     <!-- Flash Messages -->
     {% for message in get_flashed_messages() %}
-    <div class="alert alert-primary alert-dismissible fade show" role="alert">
+    <div class="alert alert-primary alert-dismissible fade show" role="alert" id="flashMessage">
         <strong>{{message}}</strong> 
         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
       </div>
         
     {% endfor %}
+    <nav class="nav" style="padding-left:400px">
+        <div class="container nav_container">
+          <div class="logo_box">
+            <div class="logo_box"><img src="static/images/icon/Logo.svg" alt="" class="logo"/></div>
+          </div>
+          <ul class="nav_list">
+            <li class="nav_item"><a href="index" class="nav_link">Home</a></li>
+            <li class="nav_item"><a href="about" class="nav_link">About</a></li>
+            <li class="nav_item"><a href="shop" class="nav_link">Shop</a></li>
+            <li class="nav_item"><a href="/portfolio" class="nav_link">Projects</a></li>
+            <li class="nav_item"><a href="/blog" class="nav_link">News</a></li>
+            <li class="nav_item"><a href="/contact" class="nav_link">Contact</a></li>
+          </ul>
+      
+      </nav>
+        
+  
+        
 
-    <div class="container">
+    <div class="container cart-container">
         <div class="row">
-            <div class="col-md-5 cart__bg"></div>
-            <div class="col-md-7 d-flex align-items-center justify-content-center flex-direction-column space">
+            <div class="col-md-5 cart__bg" style="height: auto;width: 51%;min-height: 97vh;"></div>
+            <div class="col-md-7 d-flex align-items-center justify-content-center flex-direction-column space" style="margin-left:30px;margin-top:-4%">
                 
                 <div>
                     <h2>Your Cart</h2>   
@@ -90,20 +128,24 @@
                                                 <p class="card-text">Price: Rs. {{ item.price }} per  {{item.unit.split('/')[1]}} </p>
                                             </div>
                                             <div class="card-footer d-flex justify-content-between align-items-center">
-                                                <div class="quantity-control" data-max-quantity="{{ item.quantity }}" data-item-id="{{ cart_item.item_id }}">
+                                                <div class="quantity-control" data-max-quantity="{{ item.quantity }}" data-item-id="{{ cart_item.item_id }}" style="padding-left: 10px;">
                                                     <button class="quantity-btn decreaseQuantity">-</button>
-                                                    <span class="modalItemQuantity">{{ cart_item.quantity }}</span>
+                                                    <span class="modalItemQuantity" style="padding-left: 5px;
+                                                    padding-right: 5px;">{{ cart_item.quantity }}</span>
                                                     <button class="quantity-btn increaseQuantity">+</button>
                                                 </div>
                                                 
-                                                <button class="btn btn-danger delete-btn" data-item-id="{{ cart_item.item_id }}">Delete</button>
+                                                <button class="btn btn-danger delete-btn" data-item-id="{{ cart_item.item_id }}" style="font-size: 1.2rem;">Delete</button>
                                                 <button type="button" 
                                                 class="btn btn-primary more-info-btn"
                                                 data-bs-toggle="modal" data-bs-target="#moreInfoModal"
                                                 data-item-name="{{ item.name }}"
                                                 data-item-quantity="{{ cart_item.quantity }}"
                                                 data-item-price="{{ item.price }}"
-                                                data-item-image="static/images/items/{{ item.name|replace(' ', '_')|lower }}.png">
+                                                data-item-image="static/images/items/{{ item.name|replace(' ', '_')|lower }}.png"
+                                                data-item-unit="{{item.unit.split('/')[1]}}"
+                                                style="font-size: 1rem;"
+                                                >
                                                 
                                                     More Information
                                                 </button>
@@ -115,11 +157,12 @@
                             </div>
                             <div class="text-center mt-3">
                                 <p>Total Amount: <span id="totalAmount">0</span></p>
-                                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addressModal">
+                                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addressModal" style="height: 5rem;
+                                font-size: 1.3rem;">
                                     Proceed to Checkout
                                 </button>
                             </div>
-                            
+                            <br>
                         {% else %}
                             <p>Your cart is empty.</p>
                         {% endif %}
@@ -138,10 +181,12 @@
         <div class="modal-dialog">
             <div class="modal-content custom-modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="moreInfoModalLabel">Product Information</h5>
+                    <h5 class="modal-title" id="moreInfoModalLabel" style="
+                    font-size: 17px;
+                    padding: 15px 12px;">Product Information</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <section class="single">
+                <section class="single" style="margin-top:8px">
                     <div class="container single_container">
                         <div class="single_content">
                             <img src="" class="card-img-top restricted-image" alt="" id="modalItemImage">
@@ -164,7 +209,8 @@
                     </div>
                 </section>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" style="font-size: 1.5rem;
+                    width: 25%;">Close</button>
                     <!-- Add any other buttons you need in the modal footer -->
                 </div>
             </div>
@@ -218,7 +264,7 @@
 
                                         {{ address.address_type }} <span class="actions">
                                             <span onclick="showOptions({{ loop.index }})" style="margin-left: 290px;font-size: 25px;">...</span>
-                                            <div id="options{{ loop.index }}" class="options" style="display: none;margin-left:215px;color:black;">
+                                            <div id="options{{ loop.index }}" class="options" style="display: none;margin-left:210px;color:black;">
                                                 <a href="#" onclick="editAddress({{ address.id }},event)" style="color:black;text-decoration: none;">Edit</a>
                                                 <span> | </span>
                                                 <a href="#" onclick="deleteAddress({{ address.id }}, event)" style="color:black;text-decoration: none;">Delete</a>
@@ -248,7 +294,7 @@
                     <!-- Hidden field to store selected address ID -->
                     <input type="hidden" name="selectedAddress" id="selectedAddress" value="">
 
-                    <button type="button" class="btn btn-success" style="width:100%;height:57px" onclick="proceedToPay()">Proceed to Pay > </button>
+                    <button type="button" class="btn btn-success" style="width:100%;height:57px;font-size: 1.5rem;" onclick="proceedToPay()">Proceed to Pay > </button>
                 </div>
             </div>
         </div>
@@ -267,23 +313,23 @@
     
                         <div class="bwQMZI" style="width: 50%; padding: 20px;">
                             <div class="to_style_box">
-                                <div class="Select-placeholder" id="locationIndicator">E.g. Sector 32 or Kormangala or Park View Residency</div>
+                                <div class="Select-placeholder" id="locationIndicator" style="font-size:14px">E.g. Sector 32 or Kormangala or Park View Residency</div>
                             </div>
                             <h1 class="jmoJzL" style="margin-bottom: 15px; font-size: 20px;">
                                 Enter Complete Address
-                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" style="margin-left:120px"></button>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" style="margin-left:100px"></button>
                             </h1>
     
                             <div class="kSxeiC" style="font-size: 16px;">This allows us to find you easily and give you a timely delivery experience.</div>
     
-                            <form action="/save_address" method="POST" class="a" style="margin-top: 25px;" onshown="clearFormFields()">
+                            <form action="/save_address" method="POST" class="a" style="margin-top: 25px;">
                                 {{ form.csrf_token }}
     
                                 <!-- Hidden field for edit_mode -->
-                                
+                                <input type="hidden" name="edit_mode" id="editModeField" value="false">
     
                                 <div class="form-group" style="display: flex; margin-bottom: 15px;">
-                                    {{ form.title(class="select-control", style="font-size: 16px;width: 40%; padding-right: 20px;padding-left: 20px; border: var(--bs-border-width) solid var(--bs-border-color);border-radius: 0.3rem ;",id="title", required=True) }}
+                                    {{ form.title(class="select-control", style="font-size: 16px;width: 40%; padding-right: 20px;padding-left: 20px; border: var(--bs-border-width) solid var(--bs-border-color);border-radius: 0.3rem ;",id="title",placeholder="Title" ,required=True) }}
                                     <div style="width: 50%;margin-left: 20px;">
                                         {{ form.receiver_name(class="form-control", style="font-size: 16px; padding: 10px;",placeholder="Receiver's Name",id="receiver_name", required=True) }}
                                     </div>
@@ -307,7 +353,7 @@
     
                                 <br><br><br>
     
-                                <button type="submit" class="btn btn-success" style="width: 100%;" id="submitBtn">Save Address</button>
+                                <button type="submit" class="btn btn-success" style="width: 100%;padding: 1.5rem;font-size: 14px;" id="submitBtn">Save Address</button>
                             </form>
                         </div>
                     </div>
@@ -316,24 +362,35 @@
         </div>
     </div>
     
-
     <!-- Bootstrap JS and Popper.js -->
     <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
+    <script src="static/script.js" lang="javascript"></script>
+    <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+
     
     <!-- Include any additional JS files here -->
     <script>
+        var swiper = new Swiper(".mySwiper", {
+      pagination: {
+        el: ".swiper-pagination",
+      },
+    });
+    
         $(document).ready(function () {
             $('.more-info-btn').on('click', function () {
                 var itemName = $(this).data('item-name');
                 var itemQuantity = $(this).data('item-quantity');
                 var itemPrice = $(this).data('item-price');
                 var itemImage = $(this).data('item-image');
+                var unit= $(this).data('item-unit');
+
+               
 
                 $('#modalItemName').text(itemName);
                 $('#modalItemQuantity').text('Quantity: ' + itemQuantity);
-                $('#modalItemPrice').text('Price: Rs. ' + itemPrice);
+                $('#modalItemPrice').text('Price: Rs. ' + itemPrice+ " per " + unit);
                 $('#modalItemImage').attr('src', itemImage);
             });
 
@@ -415,7 +472,7 @@
                 // Auto-dismiss after 0.5 seconds
                 setTimeout(function () {
                     messageBox.remove();
-                }, 1000);
+                }, 3000);
             }
 
             $('.delete-btn').on('click', function () {
@@ -632,10 +689,12 @@ function initMap() {
                 document.getElementById('delivery_address').value = data.delivery_address;
                 console.log(data.address_type)
                 document.getElementById('selectedOption').value = data.address_type;
-
+                
                 // Set the value of edit_mode to true
                 document.getElementById('editModeField').value = 'true';
-
+                console.log("***");
+                
+               
                 // Change the form action to /update_address
                 document.getElementById('submitBtn').innerText = 'Update Address';
                 document.querySelector('form').action = '/update_address/' + addressId;
@@ -644,6 +703,7 @@ function initMap() {
                 $('#addAddressModal').modal('show');
                 // Set the value of edit_mode to false
                
+
                 
 
             })
@@ -653,7 +713,7 @@ function initMap() {
     function updateAddress(addressId) {
     // Make an AJAX request to update the address details
     console.log("Update Address", addressId);
-    fetch('/edit_address/' + addressId , {
+    fetch('/update_address/' + addressId , {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -674,7 +734,7 @@ function initMap() {
 
                 // Change the form action to /update_address
                 document.getElementById('submitBtn').innerText = 'Save Address';
-                document.querySelector('form').action = '/save_address/' + addressId;
+                document.querySelector('form').action = '/save_address';
 
         })
         .catch(error => console.error('Error:', error));
@@ -682,6 +742,7 @@ function initMap() {
 
 function deleteAddress(addressId) {
     // Make an AJAX request to delete the address
+    event.preventDefault();
     fetch('/delete_address/' + addressId, { method: 'GET' })
         .then(response => response.json())
         .then(data => {
@@ -702,11 +763,23 @@ function deleteAddress(addressId) {
 
 function clearFormFields() {
         // Clear the form fields when the modal is shown
-        document.getElementById('title').value = '';
-        document.getElementById('receiver_name').value = '';
-        document.getElementById('delivery_address').value = '';
+        
         // document.getElementById('selectedOption').value = 'Home'; // Assuming 'Home' is the default value
+    document.getElementById('title').value = '';
+    document.getElementById('receiver_name').value = '';
+    document.getElementById('delivery_address').value = '';
+    document.getElementById('title').placeholder = 'Title';
+
+    // Reset the form action and button text
+    document.getElementById('editModeField').value = 'false';
+    document.getElementById('submitBtn').innerText = 'Save Address';
+    document.querySelector('form').action = '/save_address';
 }  
+
+$('#addAddressModal').on('hidden.bs.modal', function () {
+    clearFormFields();
+});
+
 function showMessageBox(message) {
     var messageBox = document.createElement('div');
     messageBox.className = 'alert alert-dark';
@@ -746,7 +819,9 @@ function proceedToPay() {
         alert('Please select an address before proceeding to pay.');
     }
 } 
-
+setTimeout(function() {
+            $('#flashMessage').alert('close');
+        }, 2000);
 </script>
         <!-- <script>(g=>{var h,a,k,p="The Google Maps JavaScript API",c="google",l="importLibrary",q="__ib__",m=document,b=window;b=b[c]||(b[c]={});var d=b.maps||(b.maps={}),r=new Set,e=new URLSearchParams,u=()=>h||(h=new Promise(async(f,n)=>{await (a=m.createElement("script"));e.set("libraries",[...r]+"");for(k in g)e.set(k.replace(/[A-Z]/g,t=>"_"+t[0].toLowerCase()),g[k]);e.set("callback",c+".maps."+q);a.src=`https://maps.${c}apis.com/maps/api/js?`+e;d[q]=f;a.onerror=()=>h=n(Error(p+" could not load."));a.nonce=m.querySelector("script[nonce]")?.nonce||"";m.head.append(a)}));d[l]?console.warn(p+" only loads once. Ignoring:",g):d[l]=(f,...n)=>r.add(f)&&u().then(()=>d[l](f,...n))})
         ({key: "AIzaSyAqPekF8eGHrEADspHyIKC0q-Gf0wnc39c", v: "weekly"});</script> -->

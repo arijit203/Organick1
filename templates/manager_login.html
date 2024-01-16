@@ -19,7 +19,7 @@
         }
     </style>
 </head>
-<body>
+<body  style="background: url(../static/images/manager_login.jpg);">
     {% for message in get_flashed_messages() %}
     <div class="alert alert-primary alert-dismissible fade show" role="alert">
         <strong>{{message}}</strong> 
@@ -27,8 +27,9 @@
       </div>
         
     {% endfor %}
+    
     <div class="container mt-5">
-        <div class="row justify-content-center">
+        <div class="row justify-content-center" style="margin-top: 230px;">
             <div class="col-md-6">
                 <div class="card custom-shadow">
                     <div class="card-body">

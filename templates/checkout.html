@@ -40,7 +40,7 @@
 <nav class="nav">
     <div class="container nav_container">
       <div class="logo_box">
-        <div class="logo_box"><img src="/static/images/icon/Logo.svg" alt="" class="logo"/></div>
+        <a href="{{url_for('shop')}}"><div class="logo_box"><img src="/static/images/icon/Logo.svg" alt="" class="logo"/></div></a>
 
         </div>
     </div>
@@ -133,6 +133,7 @@
 
                 <div class="LogoRail__LogoRailSection-sc-1oaympr-0 eENJTD AddCardTile__LogoRailWrapper-sc-7w54x2-5 dqGnMj"><div height="2.5rem" width="4rem" class="sc-s1isp7-1 AFCcw LogoRail__CardLogo-sc-1oaympr-1 gkPcXq"><div src="" class="sc-s1isp7-3 cVOEqG"></div><img alt="card-image" src="https://b.zmtcdn.com/web/paymnets/assets/c041a394b4e52bead147ac9c933b0e031567413096.png" loading="lazy" class="sc-s1isp7-5 jQwYOW"></div><div height="2.5rem" width="4rem" class="sc-s1isp7-1 AFCcw LogoRail__CardLogo-sc-1oaympr-1 gkPcXq"><div src="" class="sc-s1isp7-3 cVOEqG"></div><img alt="card-image" src="https://b.zmtcdn.com/web/paymnets/assets/0c22aba926507fa8aec8f4a148f6d4b51567413108.png" loading="lazy" class="sc-s1isp7-5 jQwYOW"></div></div></div></div></div>
                 <!-- Card Details Fields -->
+            </form>    
                 
         </div>
     </div>
@@ -146,7 +147,7 @@
 </svg></div></h3>
             
             <div class="dropdown-content" id="netbankingDropdown">
-                <input type="hidden" id="selectedNetbankingOption" name="selectedBankingOption" value="Payment made through Netbanking">
+                <input type="hidden" id="selectedNetbankingOption" value="Payment made through Netbanking">
                 <br>
                 <div class="sc-bke1zw-0 fIuLDK styles__StyledLayout-sc-asgmy8-1 eUpzmP">
                     <div class="sc-bke1zw-1 styles__StyledLayoutItem-sc-asgmy8-2 eCAkpW">
@@ -254,15 +255,15 @@ font-weight: 500;
             {% for cart_item,item,category in cart_items %}
                 <div class="checkout-cart__item">
                     <div class="checkout-cart__item-count display--table-cell">{{ cart_item.quantity }}</div>
-                    <div class="checkout-cart__img-box display--table-cell">
+                    <div class="checkout-cart__img-box display--table-cell" style="padding-left: 10px;">
                         <div height="100%" width="100%" class="sc-gsnTZi foBTae">
                             <img src="/static/images/items/{{ item.name|replace(' ', '_')|lower }}.png" alt="{{ item.name }}" class="sc-jSMfEi eXEZSy">
                         </div>
                     </div>
-                    <div class="checkout-cart__item-name-box vertical-align--top display--table-cell">
+                    <div class="checkout-cart__item-name-box vertical-align--top display--table-cell" style="padding-left:15px">
                         <div class="checkout-cart__item-name" data-test-id="product-name">{{ item.name }}</div>
                         <div class="checkout-cart__item-unit">
-                            {% if item.unit.split('/')[1] == 'kg' or  item.unit.split('/')[1] == 'kg'  %}
+                            {% if item.unit.split('/')[1] == 'kg' or  item.unit.split('/')[1] == 'L'  %}
                                     1 {{item.unit.split('/')[1]}}
                                 {% else %}
                                      {{item.unit.split('/')[1]}}
@@ -335,24 +336,100 @@ font-weight: 500;
                 </tbody>
             </table>
             <div class="promo-code-container">
-                <label for="promoCode" style="display: contents;font-size: small;">Enter a Promo Code:</label>
+                <label  style="display: contents;font-size: small;">Enter a Promo Code:</label>
                 <br>
                 <div style="display: inline-block;">
-                    <input type="text" id="promoCodeInput" name="promoCode" placeholder="Enter your code" >
+                    <input type="text" id="promoCodeInput"  placeholder="Enter your code" >
                     <button type="button" onclick="applyDiscount()">Apply</button>
                 </div>
             </div>
         </div>
-        <div style="padding-top: 5px;">
-            <button id="payNowButton" class="dAfcjh" onclick="submitPayment({{ address.id }})">Pay Now</button>
-        </div>
+        
+        <!-- <form action="{{ url_for('placed_order') }}" method="post" id="paymentForm">
+            
+            <input type="hidden" id="paymentForm_addressId" value="99">
+            <input type="hidden" id="paymentForm_totalAmount" value="1014">
+            <input type="hidden" id="paymentForm_mode_of_payment" value="Pay on Delivery">
+    
+            <div style="padding-top: 5px;">
+                <button type="submit" id="payNowButton" class="dAfcjh">Pay Now</button>
+            </div>
+        </form>
+     -->
+        <form action="{{ url_for('placed_order') }}" method="post" id="paymentForm" class="payment_to_form"> 
+            {{ form.csrf_token }}
+        
+            
+            {{ form.addressId(class="form-control", id="addressId", type="hidden") }}
+        
+           
+            {{ form.totalAmount(class="form-control", id="totalAmount", type="hidden") }}
+        
+            
+            {{ form.mode_of_payment(class="form-control", id="mode_of_payment", type="hidden") }}
+
+            {{ form.promo_code(class="form-control", id="promo_code", type="hidden") }}
+
+        
+            <button type="submit" id="payNowButton" class="dAfcjh">Pay Now</button>
+        </form>
     
 </div>
 </div>
 
 
 <script>
-   
+document.addEventListener("DOMContentLoaded", function () {
+function submitPayment(event, addressId) {
+        event.preventDefault();
+
+        // Get the selected payment option
+        var selectedPaymentOption = document.querySelector('.payment-option-wrapper.active');
+        var selectedPaymentOptionValue = selectedPaymentOption ? selectedPaymentOption.getAttribute('value') : '';
+
+        // Get the total price
+        var totalAmountElement = document.getElementById('Purchase_Amount');
+        var totalAmountText = totalAmountElement.innerText.trim();
+        var totalAmountValue = parseFloat(totalAmountText.replace('₹', ''));
+        var couponCode=document.getElementById('coupon').innerText;
+
+        addressId = parseInt(addressId);
+        console.log(selectedPaymentOptionValue + " " + totalAmountValue + " " + addressId);
+
+        // Set the values in the hidden fields with specific IDs
+        document.getElementById("addressId").value = addressId;
+        document.getElementById("totalAmount").value = totalAmountValue;
+        document.getElementById("mode_of_payment").value = selectedPaymentOptionValue;
+        document.getElementById('promo_code').value=couponCode
+
+
+        console.log(document.getElementById("addressId").value);
+
+        // Submit the form
+        const paymentForm = document.getElementById("paymentForm");
+        console.log(paymentForm); 
+        if (paymentForm) {
+            paymentForm.submit();
+        } else {
+            console.error("paymentForm element not found in the DOM");
+        }
+       
+        console.log("***$");
+    }
+    
+    document.getElementById("payNowButton").addEventListener("click", function (event) {
+        event.preventDefault();
+        submitPayment(event, '{{ address.id }}');
+    });
+    
+
+});
+  
+
+// Initially disable the "Pay Now" button and set the background color to grey
+var payNowButton = document.getElementById('payNowButton');
+payNowButton.disabled = true;
+payNowButton.style.backgroundColor = 'grey'; // Set initial background color
 
 function toggleDropdown(dropdownId) {
         var dropdownContent = document.getElementById(dropdownId);
@@ -378,7 +455,7 @@ function applyDiscount() {
                 // Hide the discount section if there's an error
                 showMessageBox("Promo code not valid")
                 document.getElementById('discountSection').style.display = 'none';
-                document.getElementById('Purchase_Amount').innerText='₹' + (totalAmount+29);
+                document.getElementById('Purchase_Amount').innerText='₹' + (totalAmount+29).toFixed(1);
                 document.getElementById('coupon').style.display = 'none';
             }
         })
@@ -397,7 +474,9 @@ function showMessageBox(message) {
         right: '30px',
         zIndex: '9999',
         backgroundColor: '#45474B',
-        color: 'white'
+        color: 'white',
+        'font-size': '1.5rem',
+        
     });
 
     document.body.appendChild(messageBox);
@@ -413,10 +492,11 @@ document.querySelectorAll('.payment-option-wrapper').forEach(function (wrapper) 
         // Check if the clicked wrapper is active
         var isActive = wrapper.classList.contains('active');
         var paymentOptionDiv = wrapper.querySelector('.payment-option');
-        // Remove 'active' class from all wrappers
+
+        // Remove 'active' class from all wrappers and reset border
         document.querySelectorAll('.payment-option-wrapper').forEach(function (otherWrapper) {
             otherWrapper.classList.remove('active');
-            paymentOptionDiv.style.border = '1px solid #ccc';
+            otherWrapper.querySelector('.payment-option').style.border = '1px solid #ccc';
         });
 
         // Toggle 'active' class on the clicked wrapper
@@ -424,11 +504,9 @@ document.querySelectorAll('.payment-option-wrapper').forEach(function (wrapper) 
 
         // Call validatePayment only if the wrapper is active
         if (wrapper.classList.contains('active')) {
-            
             paymentOptionDiv.style.border = '1px solid black';
             validatePayment();
-        }
-        else{
+        } else {
             var payNowButton = document.getElementById('payNowButton');
             payNowButton.disabled = true;
             paymentOptionDiv.style.border = '1px solid #ccc';
@@ -448,48 +526,8 @@ function validatePayment() {
         payNowButton.style.backgroundColor = 'green'; // Set background color to grey
     }
 }
-// Initially disable the "Pay Now" button and set the background color to grey
-var payNowButton = document.getElementById('payNowButton');
-payNowButton.disabled = true;
-payNowButton.style.backgroundColor = 'grey'; // Set initial background color
 
 
-function submitPayment(addressId) {
-    // Get the selected payment option
-    event.preventDefault();
-    console.log("Hi Hi HI")
-    var selectedPaymentOption = document.querySelector('.payment-option-wrapper input[type="radio"]:checked');
-
-    // Get the total price
-    var totalAmount = parseFloat(document.getElementById('discountAmount').innerText);
-    console.log("called "+selectedPaymentOption.value);
-    // Make an AJAX request to the server
-    fetch(`/place_order/${addressId}`, {  // Include the address_id in the URL
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-            paymentMethod: selectedPaymentOption.value,  // Use .value to get the value of the selected radio button
-            totalAmount: totalAmount,
-            addressId: addressId,
-        }),
-    })
-    .then(response => response.json())
-    .then(data => {
-        // Handle the response from the server
-        console.log(data);
-        if (data.success) {
-            // Redirect to shop.html
-            showMessageBox("Order Placed. Grocery will be delivery soon at your doorstep.")
-            window.location.href = '/shop.html';
-        } else {
-            // Handle the case where the order wasn't placed successfully
-            alert('Error placing the order. Please try again.');
-        }
-    })
-    .catch(error => console.error('Error:', error));
-}
 </script>
   <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>

@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Shop &mdash; Grocery Website</title>
     <!-- Link Swiper's CSS -->
+    
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <link rel="stylesheet" href="static/css/styles.css" />
@@ -12,7 +13,7 @@
   </head>
   <body style="background-color: var(--color-grey)">
     {% for message in get_flashed_messages() %}
-    <div class="alert alert-secondary alert-dismissible fade show" role="alert">
+    <div class="alert alert-secondary alert-dismissible fade show" role="alert" id="flashMessage">
         <strong>{{message}}</strong> 
         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
       </div>
@@ -42,7 +43,7 @@
           <div class="user_button fas" id="search-btn" >
             <img src="static/images/icon/search.png" alt="search-option" class="user_icon" />
           </div>
-          <form action="" class="search-form">
+          <form action="" class="search-form" id="search-form">
             <input type="search" placeholder="Search Here..." id="search-box"></input>
             <label for="search-box" class="fas fa-search"></label>
           </form>
@@ -61,11 +62,11 @@
                             <h3>{{ item.name }}</h3>
                             <span class="quantity">{{ cart_item.quantity }}</span>
                             <span class="multiply">x</span>
-                            <span class="price">${{ item.price }}</span>
+                            <span class="price">₹{{ item.price }}</span>
                         </div>
                       </div>
                   {% endfor %}
-                  <h3 class="total">Total: <span>${{ total_price }}</span></h3>
+                  <h3 class="total">Total: <span>₹{{ total_price }}</span></h3>
                   <a href="/cart" class="btn">Checkout Cart</a>
               {% else %}
                   <p>Your cart is empty.</p>
@@ -77,9 +78,10 @@
       
         <form method="POST" action="user_login"  class="login-form">
           {% if current_user.is_authenticated %}
+              
               <h3>Welcome, {{ current_user.username }}!</h3>
               <!-- Display other user information as needed -->
-      
+              <a href="{{ url_for('user_orders') }}" class="btn1 btn-your-orders" style="color: black;">Your Orders</a>
               <a href="{{ url_for('user_logout') }}" class="btn">Logout</a>
           {% else %}
               {{ form.csrf_token }}
@@ -95,6 +97,7 @@
               <button type="submit" class="btn">Login Now</button>
               <p>Forget password? <a href="#">Click here</a></p>
               <p>Don't have an account? <a href="user_register">Create one</a></p>
+              <p>Not a User? <a href="manager_login">Manager</a></p>
           {% endif %}
       </form>
       
@@ -104,13 +107,49 @@
       
 
     <!-- 3rd page -->
-    <header class="mini_header shop_header">
+
+<section class="home" style="margin-top:0rem">
+    <div class="slides-container">
+      <header class="mini_header shop_header active" >
+          <div class="container mini_header_container">
+              <div class="mini_header_wrapper">
+                  <div class="mini_header_title" style="padding-bottom:50px">Shop</div>
+              </div>
+          </div>
+      </header>
+
+      <header class="mini_header shop_header_1">
         <div class="container mini_header_container">
             <div class="mini_header_wrapper">
-                <div class="mini_header_title">Shop</div>
+                <div  style="padding-bottom:50px">
+                  
+                  <div class="mini_header_title1">Fresh and Organic</div>
+                  <div class="discount">Get upto 30% off</div>
+                  <div class="promo-code">for New Users use code NEWUSR</div>
+                </div>
             </div>
         </div>
     </header>
+
+    <header class="mini_header shop_header_2" >
+      <div class="container mini_header_container">
+          <div class="mini_header_wrapper">
+              <div class="mini_header_title2">
+                <div class="mini_header_title">Door to Door Delivery</div>
+                <div class="groceries-info">Discover daily essentials with unbeatable prices!</div>
+                <div class="promo-code">Use Code SALE70 for extra savings</div>
+              </div>
+          </div>
+      </div>
+  </header>
+</div>
+
+<div id="next-slide" class="fas fa-angle-right" onclick="next()" style="padding-bottom:40px"></div>
+<div id="prev-slide" class="fas fa-angle-left" onclick="prev()" style="padding-bottom:40px"></div>
+
+</section>
+
+
    
     
     <section class="product">
@@ -123,6 +162,7 @@
               {% for category in categories %}
                   <div class="category_row">
                       <h2 class="category_header">{{ category.category_name }}</h2>
+                      <div id="selection-header">
                       {% for item in category_items_dict[category.category_id][:7] %}
                           <div class="product_card">
                               <div class="product_body">
@@ -138,23 +178,33 @@
                                       <br>        
                                   </div>
                                   <div class="line">
-                                    {% if item.quantity <= 5 %}
+                                    
+                                    {% if item.quantity <= 5 and item.quantity>0 %}
                                       <span class="low-stock" style="color: red; font-size: 1.2rem;" >Low Stock</span>
                                     {% endif %}
                                   </div>
                               </div>
-                              <form method="post" action="/add_to_cart" class="add-to-cart-form">
+                              {% if  item.quantity!=0 %}
+                              <form method="post" action="/add_to_cart" class="add-to-cart-form" data-item-id="{{ item.id }}">
                                 {{ form.csrf_token }}
                                 <input type="hidden" name="item_id" value="{{ item.id }}">
                                 <input type="hidden" name="category_id" value="{{ item.category_id }}">
-                                <input type="number" name="quantity" class="quantity_box" placeholder="Quantity" min="1" max="{{ item.quantity }}">
+                                <input type="number" name="quantity" class="quantity_box" placeholder="Quantity" min="1" max="{{ item.quantity }}" id="quantity">
                                 <input type="hidden" name="cart_id" value="{{ cart_item.cart_id if cart_item else '' }}">
-                                <button type="submit" class="add_to_cart_btn">
-                                    <img src="static/images/cart.png" alt="Add to Cart" class="cart_symbol">
+                                
+                                <button type="submit" class="add_to_cart_btn" id="submitBtn" onclick="validateQuantity()">
+                                  <img src="static/images/cart.png" alt="Add to Cart" class="cart_symbol">
+                              </button>
+                            
+                                {% else %}  
+                                <button style="width: 100%;">
+                                  <span style="color: rgba(0, 106, 255, 0.594); " >No Stock</span>
                                 </button>
+                                {% endif %}
                               </form>  
                           </div>
                       {% endfor %}
+                      </div>
                   </div>
               {% endfor %}
           </div>
@@ -194,26 +244,28 @@
         el: ".swiper-pagination",
       },
     });
-    function toggleLoginBox() {
-      var loginBox = document.getElementById("loginBox");
-      loginBox.style.display = loginBox.style.display === "none" ? "block" : "none";
-    }
+    
     $(document).ready(function () {
       function showMessageBox(message) {
-        var messageBox = $('<div>', {
-            class: 'alert alert-dark',
-            role: 'alert',
-            text: message,
-            css: {
-                position: 'fixed',
-                top: '10px',
-                right: '30px',
-                zIndex: '9999',
-                backgroundColor: '#45474B',
-                color: 'white'
+                var messageBox = $('<div>', {
+                    class: 'alert alert-dark',
+                    role: 'alert',
+                    text: message,
+                    css: {
+                        position: 'fixed',
+                        top: '10px',
+                        right: '30px',
+                        zIndex: '9999',
+                        backgroundColor: '#45474B',
+                        color: 'white',
+                        'font-size':'1.5rem',
+                        height:'4rem',
+                        'border-radius':'0.5rem',
+                        padding:'5px'
 
-            },
-        });
+
+                    },
+                });
 
         $('body').append(messageBox);
 
@@ -222,9 +274,101 @@
             messageBox.remove();
         }, 1000);
       }
-    
-    })
+      $('.add-to-cart-form').submit(function (e) {
+        e.preventDefault(); // Prevent the default form submission
 
+        // Your existing AJAX request
+        $.ajax({
+            type: 'POST',
+            url: '/add_to_cart',
+            data: $(this).serialize(),
+            success: function (response) {
+                if (response.success) {
+                    // Reset the quantity input field value
+                    $('.quantity_box').val('');
+                    // Show a success message using your custom function
+                    showMessageBox(response.success, true);
+                    scrollPosition = window.scrollY;
+                    setTimeout(function () {
+                    location.reload();
+                }, 3000);
+                } else {
+                    // Show an error message using your custom function
+                    showMessageBox(response.error, false);
+                }
+            },
+            error: function (error) {
+                showMessageBox("Item could not be added to your cart due to insufficient stock");
+                console.error('AJAX error:', error);
+            }
+        });
+    });
+    window.onload = function () {
+        if (scrollPosition !== undefined) {
+            window.scrollTo(0, scrollPosition);
+        }
+    };
+   
+    })
+    setTimeout(function() {
+            $('#flashMessage').alert('close');
+        }, 2000);
+
+       
+    // Hide all categories initially
+   
+
+    $(document).ready(function() {
+    // Custom jQuery contains function (case-insensitive)
+    $.expr[":"].contains = $.expr.createPseudo(function(arg) {
+        return function(elem) {
+            return $(elem).text().toLowerCase().indexOf(arg.toLowerCase()) >= 0;
+        };
+    });
+
+    // Hide all categories initially
+  
+    $('#search-form').on('input', function() {
+        var searchTerm = $('#search-box').val().toLowerCase();
+
+        // Hide all categories and product cards initially
+        $('.category_row, .product_card').hide();
+
+        // Show matching categories based on category name
+        $('.category_row:contains("' + searchTerm + '")').each(function() {
+            var category = $(this);
+            category.show();
+
+            // Show all product cards within the category
+            category.find('.product_card').show();
+
+            // Show matching product cards within the category based on item name
+            category.find('.product_card:contains("' + searchTerm + '")').show();
+        });
+        updateStylesAfterFiltering();
+    });
+});
+function updateStylesAfterFiltering() {
+        // Get the selection-header element
+        var selectionHeader = document.getElementById('selection-header');
+        // var categoryHeader = document.getElementsByClassName('category_header').first;
+        
+        // Apply styles or add/remove classes
+        selectionHeader.style.display = 'flex';
+        
+
+        // You can also add or remove classes
+        // selectionHeader.classList.add('some-class');
+        // selectionHeader.classList.remove('another-class');
+    }
+    function validateQuantity() {
+    var quantityField = document.getElementById('quantity');
+    var submitBtn = document.getElementById('submitBtn');
+
+    if (quantityField && submitBtn) {
+        submitBtn.disabled = quantityField.value.trim() === "";
+    }
+}
   </script>
   </body>
 </html>

@@ -6,14 +6,16 @@ from sqlalchemy.exc import SQLAlchemyError
 from flask_wtf import FlaskForm
 from wtforms import StringField,SubmitField,PasswordField,BooleanField,ValidationError,IntegerField,FloatField,SelectField,RadioField
 from wtforms.validators import DataRequired,EqualTo,Length,NumberRange
-from datetime import datetime
 from flask_wtf.csrf import generate_csrf
 from functools import wraps
 import matplotlib
 matplotlib.use('Agg')
 from flask_wtf.csrf import CSRFProtect
 import matplotlib.pyplot as plt
-
+from datetime import datetime
+from pytz import timezone
+from sqlalchemy import asc,desc
+indian_timezone = timezone('Asia/Kolkata')
 
 
 from werkzeug.security import generate_password_hash,check_password_hash
@@ -38,7 +40,6 @@ class Users(db.Model,UserMixin):
     username=db.Column(db.String(200),nullable=False,unique=True)
     name=db.Column(db.String(200),nullable=False)
     email=db.Column(db.String(200),nullable=False,unique=True)
-    date_added=db.Column(db.DateTime,default=datetime.utcnow)
     password_hash=db.Column(db.String(128))
     
     @property
@@ -67,11 +68,56 @@ def load_user(user_id):
 @app.route('/index')
 def primary():
     form=UserForm()
-    return render_template('index.html',form=form)
+    cartform=Cart()
+    username = request.args.get('username')
+    email = request.args.get('email')
+
+    categories = Category.query.all()
+    category_items_dict = {}
+    for category in categories:
+        items = Order_items.query.filter_by(category_id=category.category_id).all()
+        category_items_dict[category.category_id] = items
+
+    if current_user.is_authenticated:
+        cart_items = db.session.query(Cart, Order_items, Category)\
+        .join(Order_items, Cart.item_id == Order_items.id)\
+        .join(Category, Order_items.category_id == Category.category_id)\
+        .filter(Cart.user_id == current_user.id)\
+        .all()
+        total_price = 0
+        for cart_item, item, category in cart_items:
+            total_price += item.price * cart_item.quantity
+        print(total_price)  
+        return render_template('index.html',categories=categories , cart_items=cart_items,category_items_dict=category_items_dict,username=current_user.username, email=current_user.email,form=form,cartform=cartform,total_price=total_price)
+    return render_template('index.html',categories=categories , category_items_dict=category_items_dict,username=username, form=form,cartform=cartform,email=email)
+    
 
 @app.route('/about')
 def about():
-    return render_template('about.html')
+    form=UserForm()
+    cartform=Cart()
+    username = request.args.get('username')
+    email = request.args.get('email')
+
+    categories = Category.query.all()
+    category_items_dict = {}
+    for category in categories:
+        items = Order_items.query.filter_by(category_id=category.category_id).all()
+        category_items_dict[category.category_id] = items
+
+    if current_user.is_authenticated:
+        cart_items = db.session.query(Cart, Order_items, Category)\
+        .join(Order_items, Cart.item_id == Order_items.id)\
+        .join(Category, Order_items.category_id == Category.category_id)\
+        .filter(Cart.user_id == current_user.id)\
+        .all()
+        total_price = 0
+        for cart_item, item, category in cart_items:
+            total_price += item.price * cart_item.quantity
+        print(total_price)  
+        return render_template('about.html',categories=categories , cart_items=cart_items,category_items_dict=category_items_dict,username=current_user.username, email=current_user.email,form=form,cartform=cartform,total_price=total_price)
+    return render_template('about.html',categories=categories , category_items_dict=category_items_dict,username=username, form=form,cartform=cartform,email=email)
+    
 
 @app.route('/shop')
 def shop():
@@ -101,22 +147,90 @@ def shop():
 
 
     # Render the shop.html template with the form information
-    return render_template('shop.html',categories=categories , category_items_dict=category_items_dict,username=username, form=form,cartform=cartform,
-    email=email)
+    return render_template('shop.html',categories=categories , category_items_dict=category_items_dict,username=username, form=form,cartform=cartform,email=email)
    
 
 
 @app.route('/portfolio')
 def portfolio():
-    return render_template('portfolio.html')
+    form=UserForm()
+    cartform=Cart()
+    username = request.args.get('username')
+    email = request.args.get('email')
+
+    categories = Category.query.all()
+    category_items_dict = {}
+    for category in categories:
+        items = Order_items.query.filter_by(category_id=category.category_id).all()
+        category_items_dict[category.category_id] = items
+
+    if current_user.is_authenticated:
+        cart_items = db.session.query(Cart, Order_items, Category)\
+        .join(Order_items, Cart.item_id == Order_items.id)\
+        .join(Category, Order_items.category_id == Category.category_id)\
+        .filter(Cart.user_id == current_user.id)\
+        .all()
+        total_price = 0
+        for cart_item, item, category in cart_items:
+            total_price += item.price * cart_item.quantity
+        print(total_price)  
+        return render_template('portfolio.html',categories=categories , cart_items=cart_items,category_items_dict=category_items_dict,username=current_user.username, email=current_user.email,form=form,cartform=cartform,total_price=total_price)
+    return render_template('portfolio.html',categories=categories , category_items_dict=category_items_dict,username=username, form=form,cartform=cartform,email=email)
+    # return render_template('portfolio.html')
 
 @app.route('/blog')
 def blog():
-    return render_template('blog.html')
+    form=UserForm()
+    cartform=Cart()
+    username = request.args.get('username')
+    email = request.args.get('email')
+
+    categories = Category.query.all()
+    category_items_dict = {}
+    for category in categories:
+        items = Order_items.query.filter_by(category_id=category.category_id).all()
+        category_items_dict[category.category_id] = items
+
+    if current_user.is_authenticated:
+        cart_items = db.session.query(Cart, Order_items, Category)\
+        .join(Order_items, Cart.item_id == Order_items.id)\
+        .join(Category, Order_items.category_id == Category.category_id)\
+        .filter(Cart.user_id == current_user.id)\
+        .all()
+        total_price = 0
+        for cart_item, item, category in cart_items:
+            total_price += item.price * cart_item.quantity
+        print(total_price)  
+        return render_template('blog.html',categories=categories , cart_items=cart_items,category_items_dict=category_items_dict,username=current_user.username, email=current_user.email,form=form,cartform=cartform,total_price=total_price)
+    return render_template('blog.html',categories=categories , category_items_dict=category_items_dict,username=username, form=form,cartform=cartform,email=email)
+    # return render_template('blog.html')
 
 @app.route('/contact')
 def contact():
-    return render_template('contact.html')
+    form=UserForm()
+    cartform=Cart()
+    username = request.args.get('username')
+    email = request.args.get('email')
+
+    categories = Category.query.all()
+    category_items_dict = {}
+    for category in categories:
+        items = Order_items.query.filter_by(category_id=category.category_id).all()
+        category_items_dict[category.category_id] = items
+
+    if current_user.is_authenticated:
+        cart_items = db.session.query(Cart, Order_items, Category)\
+        .join(Order_items, Cart.item_id == Order_items.id)\
+        .join(Category, Order_items.category_id == Category.category_id)\
+        .filter(Cart.user_id == current_user.id)\
+        .all()
+        total_price = 0
+        for cart_item, item, category in cart_items:
+            total_price += item.price * cart_item.quantity
+        print(total_price)  
+        return render_template('contact.html',categories=categories , cart_items=cart_items,category_items_dict=category_items_dict,username=current_user.username, email=current_user.email,form=form,cartform=cartform,total_price=total_price)
+    return render_template('contact.html',categories=categories , category_items_dict=category_items_dict,username=username, form=form,cartform=cartform,email=email)
+    
 
 
 
@@ -170,8 +284,8 @@ def add_user():
     form.email.data = ''
     form.password_hash.data = ''
 
-    our_users = Users.query.order_by(Users.date_added)
-    return render_template("user_register.html", name=name, form=form, our_users=our_users,username=username)
+   
+    return render_template("user_register.html", name=name, form=form, username=username)
 
 
 def user_profile_access_required(func):
@@ -204,10 +318,13 @@ def login():
             if check_password_hash(user.password_hash,form.password_hash.data):
                 login_user(user) #creates the session
                 session['is_user']=True
-                return redirect(url_for('shop',email=form.email.data))
+                
+                flash('Login successful!', 'success')
+                next_url = request.form.get('next')
+                return redirect(url_for('shop'))
 
             else:
-                flash('Wrong Password - Try Again!!')    
+                flash('Invalid or Wrong Password - Try Again!!')    
         else:
             flash("That User doesn't exist! Try Again...")            
     return render_template('user_login.html',form=form)
@@ -245,62 +362,36 @@ class BuyForm(FlaskForm):
     quantity = IntegerField('Quantity', validators=[DataRequired(), NumberRange(min=1)])
     
 
-@app.route('/add_to_cart', methods=['GET','POST'])
+@app.route('/add_to_cart', methods=['POST'])
 def add_to_cart():
     if not current_user.is_authenticated:
-        flash('Please log in to add items to your cart.', 'error')
-        return redirect(url_for('login'))
-        # return jsonify({'error': 'User not authenticated'}), 401
-    
-    
-    
-    form=UserForm()
-    cartform=Cart()
-    item_id = request.form.get('item_id')  # Assuming your HTML form is sending the data as form data
+        # Return a JSON response indicating authentication failure
+        return jsonify({'error': 'User not authenticated'}), 401
+
+    item_id = request.form.get('item_id')
     category_id = request.form.get('category_id')
-    quantity = request.form.get('quantity')  or 1  # Default to 1 if quantity is not provided
- # Default to 1 if quantity is not provided
-    item=Order_items.query.get_or_404(item_id)
+    quantity = request.form.get('quantity', 1)  # Default to 1 if quantity is not provided
 
-    if(int(quantity)>int(item.quantity)):
-        flash(f'{quantity}{(item.unit).split("/")[1]} {item.name} cannot be added to cart!', 'Failure')
-    else:
-        # Check if the item is already in the cart
-        cart_item = Cart.query.filter_by(item_id=item_id,category_id=category_id, user_id=current_user.id).first()
-        # username=Users.query.filter_by(id=current_user.id).username
-        if cart_item:
-            # Update the quantity if the item is already in the cart
-            cart_item.quantity +=int( quantity)
-            flash('Item quantity updated in your cart.', 'success')
+    item = Order_items.query.get_or_404(item_id)
+    cart_item = Cart.query.filter_by(item_id=item_id, category_id=category_id, user_id=current_user.id).first()
+    
+    if cart_item:
+        if int(cart_item.quantity) + int(quantity) > int(item.quantity):
+            # Return a JSON response indicating failure due to insufficient stock
+            return jsonify({'error': 'Item could not be added to your cart due to insufficient stock'}), 400
         else:
-            # Add a new item to the cart
+            cart_item.quantity += int(quantity)
             
-            new_cart_item = Cart(category_id =category_id ,item_id=item_id, user_id=current_user.id,username=current_user.username, quantity=quantity)
-            db.session.add(new_cart_item)
-            flash('Item added to your cart.', 'success')
-
-
-
-
-    db.session.commit()
-    categories = Category.query.all()
-    category_items_dict = {}
-    for category in categories:
-        items = Order_items.query.filter_by(category_id=category.category_id).all()
-        category_items_dict[category.category_id] = items
-
-    # cart_items = Cart.query.filter_by(username=current_user.username).all()
-    cart_items = db.session.query(Cart, Order_items, Category)\
-        .join(Order_items, Cart.item_id == Order_items.id)\
-        .join(Category, Order_items.category_id == Category.category_id)\
-        .filter(Cart.user_id == current_user.id)\
-        .all()
-    total_price = 0
-    for cart_item, item, category in cart_items:
-        total_price += item.price * cart_item.quantity
-    # Render the shop.html template with the form information
-    return render_template('shop.html',categories=categories , cart_items=cart_items,category_items_dict=category_items_dict,username=current_user.username, email=current_user.email,form=form,cartform=cartform,total_price=total_price)
-   
+           
+            db.session.commit()
+            # Return a JSON response indicating success
+            return jsonify({'status': 'success'})
+    else:
+        new_cart_item = Cart(category_id=category_id, item_id=item_id, user_id=current_user.id, username=current_user.username, quantity=quantity)
+        db.session.add(new_cart_item)
+        db.session.commit()
+        # Return a JSON response indicating success
+        return jsonify({'success': 'Item added to your cart'}), 200
 
 @app.route("/delete_from_cart/<int:item_id>",methods=['GET','POST'])
 def delete_from_cart(item_id):
@@ -349,7 +440,7 @@ class User_address(db.Model):
     address_type = db.Column(db.String(10), nullable=False)
 
 class AddressForm(FlaskForm):
-    title = SelectField('Title', choices=[('0', 'Title'), ('1', 'Mr.'), ('2', 'Mrs'), ('3', 'Miss')], validators=[InputRequired()])
+    title = SelectField('Title', choices=[('','Title') ,('1', 'Mr.'), ('2', 'Mrs'), ('3', 'Miss')], validators=[InputRequired()])
     receiver_name = StringField('Receiver\'s Name', validators=[InputRequired()])
     delivery_address = StringField('Delivery Address', validators=[InputRequired()])
     save_address_as = RadioField('Save Address as', choices=[('Home', 'Home'), ('Work', 'Work'), ('Other', 'Other')], validators=[InputRequired()])
@@ -541,6 +632,7 @@ def delete_address(address_id):
 def checkout(address_id):
     # Handle the payment logic with the selected address ID
     # For demonstration, just render a template
+    payment_form = PaymentForm()
     total_price = 0
     cart_items = db.session.query(Cart, Order_items, Category)\
         .join(Order_items, Cart.item_id == Order_items.id)\
@@ -571,7 +663,7 @@ def checkout(address_id):
     #             flash('Invalid promo code. Please try again.', 'error')
 
     
-    return render_template('checkout.html',address=address,cart_items=cart_items,num=num_items_in_cart,total_price=total_price)
+    return render_template('checkout.html',address=address,cart_items=cart_items,num=num_items_in_cart,total_price=total_price, form=payment_form)
 
 
 
@@ -622,7 +714,7 @@ class User_buy(db.Model):
     category_name = db.Column(db.String(200), nullable=False)
     item_name = db.Column(db.String(200), nullable=False)
     quantity = db.Column(db.Integer, nullable=False)
-    price = db.Column(db.Integer, nullable=False)
+    price = db.Column(db.Float, nullable=False)
     
 
     
@@ -630,136 +722,125 @@ class User_buy(db.Model):
 class Placed_orders(db.Model):
     order_id = db.Column(db.Integer, primary_key=True ,autoincrement=True)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
-    order_date = db.Column(db.DateTime, default=datetime.utcnow)
+    order_date = db.Column(db.DateTime, default=datetime.now(indian_timezone))
     total_price = db.Column(db.Float, nullable=False)
     mode_of_payment=db.Column(db.String(200),nullable=False)
     address=db.Column(db.String(200),nullable=False)
+    promoCode=db.Column(db.String(200))
 
     def __repr__(self):
         return f'<Placed_Orders order_id={self.order_id} user_id={self.user_id} order_date={self.order_date} total_price={self.total_price}>'
     
+class PaymentForm(FlaskForm):
+    addressId = StringField('AddressId')
+    totalAmount = IntegerField('totalAmount')
+    mode_of_payment =StringField ('mode_of_Payment')
+    promo_code = StringField('promo_code')
+    submit = SubmitField('Pay Now')    
 
-@app.route('/place_order/<int:address_id>', methods=['POST'])
-def place_order(address_id):
+@app.route('/placed_order', methods=['POST'])
+def placed_order():
+    
     try:
-        data = request.json
-        payment_method = data.get('paymentMethod')
-        total_amount = data.get('totalAmount')
-        address_id = data.get('addressId')
+        # Retrieve form data
+        print("Hi hui byei ")
+        payment_method = request.form.get('mode_of_payment')
+        total_amount = int(request.form.get('totalAmount'))
+        address_id = int(request.form.get('addressId'))
         address = User_address.query.get(address_id)
-        
+        promoCode=request.form.get('promo_code')
+
         # Step 1: Create the Order
-        new_order = Placed_orders(user_id=current_user.id, order_date=datetime.utcnow(),total_price=total_amount,mode_of_payment=payment_method,address=address.delivery_address)
+        new_order = Placed_orders(user_id=current_user.id, order_date=datetime.now(indian_timezone), total_price=total_amount, mode_of_payment=payment_method, address=address.delivery_address,promoCode=promoCode)
         db.session.add(new_order)
         db.session.commit()
-
+        print("*****")
         # Step 2: Retrieve Cart Items
         cart_items = Cart.query.filter_by(user_id=current_user.id).all()
         # Update the Order_items table and subtract the ordered quantity
         for cart_item in cart_items:
             item = Order_items.query.filter_by(id=cart_item.item_id).first()
-            
-            category=Category.query.filter_by(category_id=item.category_id).first()
+
+            category = Category.query.filter_by(category_id=item.category_id).first()
             user_buyer = User_buy(
                 order_id=new_order.order_id,
                 category_name=category.category_name,
                 item_name=item.name,
                 quantity=cart_item.quantity,
                 price=item.price
-            )  
+            )
+            print(user_buyer)
+            db.session.add(user_buyer)
+            db.session.commit()
 
-            db.session.add(user_buyer) 
-            
             item.quantity -= cart_item.quantity
             db.session.delete(cart_item)
             db.session.commit()
-        
-        # Return success response
-        return jsonify({'success': True, 'message': 'Order placed successfully'})
+        flash("Order Placed Successfully! Arriving in 20mins")
+        # Redirect to the shop.html page upon successful order placement
+        return redirect(url_for('shop'))
+
     except Exception as e:
         # Handle any exceptions
         print(e)
-        return jsonify({'success': False, 'message': 'Error placing the order'}), 500
-    
-# @app.route('/<username>/place_order', methods=['GET','POST'])
-# @login_required
-# @user_profile_access_required
-# def place_order(username):
-#     user_id = current_user.id
-#     cart_items = Cart.query.filter_by(user_id=user_id).all()
-#     total_price = 0
+        # Redirect to an error page or display an error message
+        return redirect(url_for('error_page'))
 
-#     if cart_items:
-#         try:
-#             # Calculate the total price of the order
-#             for cart_item in cart_items:
-#                 item = Order_items.query.get_or_404(cart_item.item_id)
-#                 total_price += item.price * cart_item.quantity
+@app.route('/error_page',methods=['GET'])
+def error_page():
+    return render_template('404.html')
 
-#             placed_order = Placed_orders(user_id=user_id, total_price=total_price)
-#             db.session.add(placed_order)
-#             db.session.commit()
-            
-#             # Update the Order_items table and subtract the ordered quantity
-#             for cart_item in cart_items:
-#                 item = Order_items.query.filter_by(id=cart_item.item_id).first()
-#                 # if cart_item.quantity <= item.quantity:
-#                         # Save the order to the placed_order table
-                
+@app.route('/user_orders',methods=['GET'])
+def user_orders():
+    orders = Placed_orders.query.filter_by(user_id=current_user.id).order_by(desc(Placed_orders.order_date)).all()
+    for order in orders:
+        order.formatted_order_date = order.order_date.strftime("%A, %d %b'%y, %I:%M%p")
 
-#                 category=Category.query.filter_by(category_id=item.category_id).first()
-#                 user_buyer = User_buy(
-#                     order_id=placed_order.order_id,
-#                     category_name=category.category_name,
-#                     item_name=item.name,
-#                     quantity=cart_item.quantity,
-#                     price=item.price
-#                 )   
-                
-                    
-                    
-                
-                
-#                 item.quantity -= cart_item.quantity
-#                 db.session.delete(cart_item)
-#                 db.session.commit()
-#                 db.session.flush()
-           
-
-#             flash("Order placed successfully! Thank you for your purchase.", "success")
-#         except SQLAlchemyError as e:
-#             # Rollback the transaction on any database errors
-#             db.session.rollback()
-#             flash(f"Error occurred while placing the order: {str(e)}", "danger")
-
-#     return redirect(url_for('cart', username=username))   
-
-class SearchForm(FlaskForm):
-    search_query = StringField('Search', validators=[DataRequired()])
-    submit = SubmitField('Search')
-
-@app.route('/<username>/search', methods=['GET', 'POST'])
-@login_required
-@user_profile_access_required
-def search_items(username):
-    form = SearchForm()
-
-    if form.validate_on_submit():
-        search_query = form.search_query.data.strip().lower()
-
-        if search_query:
-            # Query the Category table to check if the search category exists
-            category_results = Category.query.filter(Category.category_name.ilike(f'%{search_query}%')).all()
-
-            # Query the Order_items table to check if the search query matches any item names
-            item_results = Order_items.query.filter(Order_items.name.ilike(f'%{search_query}%')).all()
-
-            return render_template('search_items.html', category_results=category_results, item_results=item_results,form=form)
-
-    # If the form is not submitted or the search query is empty, stay on the user dashboard
-    return render_template('user_dashboard.html', username=username, form=form)
+    return render_template('user_orders.html',orders=orders)
 
 
+@app.route('/order_details/<int:order_id>')
+def order_details(order_id):
+    try:
+        order = Placed_orders.query.get(order_id)
+
+        # Fetch items for the order
+        items = User_buy.query.filter_by(order_id=order_id).all()
+        for item in items:
+            item.image_url = f'/static/images/items/{item.item_name.replace(" ", "_").lower()}.png'
+            order_item=Order_items.query.filter_by(name=item.item_name).first()
+            item.unit=order_item.unit.split('/')[1]
+            if(item.unit=='kg'):
+                item.unit='1Kg'
+            elif(item.unit=='L'):
+                item.unit='1L'   
+        # Convert data to JSON
+        MRP=0
+        discountCode=order.promoCode
+        print(discountCode)
+        if len(discountCode)!=0:
+            discountValue=Discount.query.filter_by(code=discountCode).first().amount
+        else:
+            discountValue=' - '    
+        print(order)
+        for item in items:
+            MRP+=item.quantity*item.price
+        data = {
+            'order_id': order.order_id,
+            'total_price': order.total_price,
+            'MRP':MRP,
+            'paymentMode':order.mode_of_payment,
+            'Address':order.address,
+            'discountCode':discountCode,
+            'discountValue':discountValue,
+            'formatted_order_date': order.order_date.strftime("%A, %d %b'%y, %I:%M%p"),
+            'items': [{'item_name': item.item_name, 'item_price': item.price,'item_quantity':item.quantity,'img_url':item.image_url,'unit':item.unit} for item in items]
+        }
+
+        return jsonify(data)
+    except Exception as e:
+        print(f"Error in order_details route: {str(e)}")
+        return jsonify({'error': 'Internal Server Error'}), 500
 # #create Logout page
 @app.route('/user_logout',methods=['GET','POST'])
 @login_required
@@ -859,10 +940,14 @@ def manager_dashboard(name):
 def summary(name):
 
     if is_manager(name):
+        categories=Category.query.all()
         user_buys = User_buy.query.all()
 
         # Process data for the first graph (category-wise utilization)
         category_utilization = {}
+        for category in categories:
+            category_utilization[category.category_name]=0
+        
         for buy in user_buys:
             if buy.category_name in category_utilization:
                 category_utilization[buy.category_name] += buy.quantity
@@ -874,11 +959,11 @@ def summary(name):
         price_ranges = [0, 10, 20, 30, 40, 50, 100, 200, 500, 1000]
         products_in_ranges = [0] * (len(price_ranges) - 1)
         for buy in user_buys:
-            if buy.date_added.isocalendar()[1] == current_week:
-                for i in range(len(price_ranges) - 1):
-                    if price_ranges[i] < buy.price <= price_ranges[i + 1]:
-                        products_in_ranges[i] += 1
-                        break
+            
+            for i in range(len(price_ranges) - 1):
+                if price_ranges[i] < buy.price <= price_ranges[i + 1]:
+                    products_in_ranges[i] += 1
+                    break
 
         # Plot the first graph (category-wise utilization)
         plt.figure(figsize=(8, 5))
@@ -892,7 +977,7 @@ def summary(name):
         plt.yticks(fontsize=10)
         
         plt.tight_layout()
-        plt.savefig('./Code/static/category_utilization.png')
+        plt.savefig('./static/images/category_utilization.png')
         plt.close()
 
         # Plot the second graph (range of products bought in the present week)
@@ -913,13 +998,21 @@ def summary(name):
         plt.tight_layout()
         
         # Save the plot to a file
-        plot_path = "./Code/static/summary_plot.png"
+        
+        plot_path = "./static/images/summary.png"
         plt.savefig(plot_path)
         
         # Close the plot to free up resources
         plt.close()
 
-        return render_template('summary.html', name=name, plot_path=plot_path)
+        out_of_stock=[]
+        in_house=Order_items.query.all()
+        for i in in_house:
+            print(i)
+            if i.quantity==0:
+                out_of_stock.append(i.name)
+
+        return render_template('summary.html', name=name, out_of_stock=out_of_stock)
     else:
         abort(403)
 
@@ -985,7 +1078,7 @@ class Order_items(db.Model):
     price = db.Column(db.Float, nullable=False)
     name = db.Column(db.String(200), nullable=False,unique=True)
     unit=db.Column(db.String(20), nullable=False)
-    MFD=db.Column(db.DateTime,default=datetime.utcnow)
+    MFD=db.Column(db.DateTime,default=datetime.now(indian_timezone))
 
 
 class CreateItemForm(FlaskForm):

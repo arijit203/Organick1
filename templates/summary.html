@@ -8,18 +8,33 @@
                 <div class="card">
                     <div class="card-body">
                         <h2 class="card-title">Category-wise Utilization</h2>
-                        <img class="img-fluid" src="{{ url_for('static', filename='category_utilization.png') }}" alt="Category-wise Utilization">
+                        <img class="img-fluid" src="/static/images/category_utilization.png" alt="Category-wise Utilization">
                     </div>
                 </div>
             </div>
             <div class="col-md-6">
                 <div class="card">
                     <div class="card-body">
-                        <h2 class="card-title">Comparison of Quantities for Items Bought in Current Week</h2>
-                        <img class="img-fluid" src="{{ url_for('static', filename='summary_plot.png') }}" alt="Range of Products Bought in the Present Week">
+                        <h2 class="card-title">Comparison between Items in Demand</h2>
+                        <img class="img-fluid" src="/static/images/summary.png" alt="Range of Products Bought in the Present Week">
                     </div>
                 </div>
             </div>
         </div>
+        <div style="font-family: 'Arial', sans-serif;padding-top: 20px;">
+            {% if out_of_stock.length!=0 %}
+            <h2 style=" color: red; /* Set the font color for out-of-stock items */
+            font-weight: bold;font-size: 1.5rem;">Out-of-Stock Items:</h2>
+            <ul>
+                {% for item in out_of_stock %}
+                    <li class="out-of-stock">{{ item }}</li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p>No out-of-stock items at the moment.</p>
+        {% endif %}
+    
+        </div>
     </div>
+    
 {% endblock %}
