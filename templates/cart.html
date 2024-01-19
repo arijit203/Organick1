@@ -54,7 +54,7 @@
   }
 
   .cart-container {
-    margin-top: 200px; /* Adjust this value based on the height of your nav */
+    margin-top: 170px; /* Adjust this value based on the height of your nav */
   }
    
 
@@ -322,7 +322,7 @@
     
                             <div class="kSxeiC" style="font-size: 16px;">This allows us to find you easily and give you a timely delivery experience.</div>
     
-                            <form action="/save_address" method="POST" class="a" style="margin-top: 25px;">
+                            <form action="/save_address" method="POST" class="a" style="margin-top: 25px;" id="addressForm">
                                 {{ form.csrf_token }}
     
                                 <!-- Hidden field for edit_mode -->
@@ -488,8 +488,11 @@
                         if (response.success) {
                             // Handle success, e.g., remove the card or update the view
                             // You can add additional logic based on your requirements
-                            location.reload();
+                            
                             showMessageBox("Item Deleted Successfully")
+                            setTimeout(function () {
+                                location.reload();
+                            }, 2000);
                         } else {
                             showMessageBox('Error deleting item: ' + response.message);
                         }
@@ -729,17 +732,27 @@ function initMap() {
         .then(response => response.json())
         .then(data => {
             // Handle success, you might want to update the UI accordingly
+            
             console.log(data.message);
             document.getElementById('editModeField').value = 'false';
 
-                // Change the form action to /update_address
-                document.getElementById('submitBtn').innerText = 'Save Address';
-                document.querySelector('form').action = '/save_address';
+           
+                // Redirect to the cart page
+            showMessageBox("Address is Updated!");
+            setTimeout(function () {
+                showMessageBox("Address is Updated!");
+                window.location.href ='\cart';
+            }, 4000);
+            
+            
 
+            // Change the form action to /update_address
+            document.getElementById('submitBtn').innerText = 'Save Address';
+            document.querySelector('form').action = '/save_address';
+            showMessageBox("Address is Updated!");
         })
-        .catch(error => console.error('Error:', error));
-    }
-
+        .catch(error => console.error('Error Catched:', error));
+}
 function deleteAddress(addressId) {
     // Make an AJAX request to delete the address
     event.preventDefault();
@@ -752,8 +765,11 @@ function deleteAddress(addressId) {
             if (data.success) {
                 // Handle success, e.g., remove the card or update the view
                 // You can add additional logic based on your requirements
-                location.reload();
+                //location.reload();
                 showMessageBox("Address Deleted Successfully");
+                setTimeout(function () {
+                    location.reload();
+                }, 2000);
             } else {
                 showMessageBox('Error deleting address: ' + data.message);
             }
@@ -822,6 +838,41 @@ function proceedToPay() {
 setTimeout(function() {
             $('#flashMessage').alert('close');
         }, 2000);
+
+
+
+    //     document.addEventListener('DOMContentLoaded', function () {
+    //     // Assuming your form has an ID of 'addressForm'
+    //     var form = document.getElementById('addressForm');
+
+    //     form.addEventListener('submit', function (event) {
+    //         // Prevent the default form submission
+    //         event.preventDefault();
+
+    //         // Your form submission logic here
+    //         // ...
+
+    //         // Fetch API for handling the form submission
+    //         fetch(form.action, {
+    //             method: form.method,
+    //             body: new FormData(form),
+    //         })
+    //         .then(response => response.json()) // Adjust this based on your server response format
+    //         .then(data => {
+    //             // Handle the response if needed
+    //             showMessageBox("Address Saved")
+    //             // Clear the form after successful submission
+    //             form.reset();
+    //             setTimeout(function () {
+    //                 location.reload();
+    //             }, 2000);
+    //         })
+    //         .catch(error => {
+    //             // Handle the error if needed
+    //             console.error('Error submitting form:', error);
+    //         });
+    //     });
+    // });  
 </script>
         <!-- <script>(g=>{var h,a,k,p="The Google Maps JavaScript API",c="google",l="importLibrary",q="__ib__",m=document,b=window;b=b[c]||(b[c]={});var d=b.maps||(b.maps={}),r=new Set,e=new URLSearchParams,u=()=>h||(h=new Promise(async(f,n)=>{await (a=m.createElement("script"));e.set("libraries",[...r]+"");for(k in g)e.set(k.replace(/[A-Z]/g,t=>"_"+t[0].toLowerCase()),g[k]);e.set("callback",c+".maps."+q);a.src=`https://maps.${c}apis.com/maps/api/js?`+e;d[q]=f;a.onerror=()=>h=n(Error(p+" could not load."));a.nonce=m.querySelector("script[nonce]")?.nonce||"";m.head.append(a)}));d[l]?console.warn(p+" only loads once. Ignoring:",g):d[l]=(f,...n)=>r.add(f)&&u().then(()=>d[l](f,...n))})
         ({key: "AIzaSyAqPekF8eGHrEADspHyIKC0q-Gf0wnc39c", v: "weekly"});</script> -->

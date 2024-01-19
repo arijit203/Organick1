@@ -162,7 +162,7 @@
               {% for category in categories %}
                   <div class="category_row">
                       <h2 class="category_header">{{ category.category_name }}</h2>
-                      <div id="selection-header">
+                      <div class="selection-header">
                       {% for item in category_items_dict[category.category_id][:7] %}
                           <div class="product_card">
                               <div class="product_body">
@@ -297,10 +297,16 @@
                     showMessageBox(response.error, false);
                 }
             },
-            error: function (error) {
-                showMessageBox("Item could not be added to your cart due to insufficient stock");
-                console.error('AJAX error:', error);
-            }
+            error: function (jqXHR, textStatus, errorThrown) {
+        if (jqXHR.responseJSON && jqXHR.responseJSON.error) {
+            // Show the error message received from the server
+            showMessageBox(jqXHR.responseJSON.error, false);
+        } else {
+            // Show a generic error message for other types of errors
+            showMessageBox("Please Sign in to Add Item to Cart", false);
+        }
+        console.error('AJAX error:', textStatus, errorThrown);
+    }
         });
     });
     window.onload = function () {
@@ -317,7 +323,6 @@
        
     // Hide all categories initially
    
-
     $(document).ready(function() {
     // Custom jQuery contains function (case-insensitive)
     $.expr[":"].contains = $.expr.createPseudo(function(arg) {
@@ -327,7 +332,8 @@
     });
 
     // Hide all categories initially
-  
+    
+
     $('#search-form').on('input', function() {
         var searchTerm = $('#search-box').val().toLowerCase();
 
@@ -345,30 +351,62 @@
             // Show matching product cards within the category based on item name
             category.find('.product_card:contains("' + searchTerm + '")').show();
         });
+
         updateStylesAfterFiltering();
     });
+
+    // Add a handler to clear styles when search box is cleared
+    $('#search-box').on('input', function() {
+        var searchTerm = $(this).val().toLowerCase();
+        if (searchTerm === '') {
+            clearStylesAfterFiltering();
+        }
+    });
 });
+
 function updateStylesAfterFiltering() {
-        // Get the selection-header element
-        var selectionHeader = document.getElementById('selection-header');
-        // var categoryHeader = document.getElementsByClassName('category_header').first;
-        
-        // Apply styles or add/remove classes
-        selectionHeader.style.display = 'flex';
-        
+    // Get all elements with the selection-header class
+    var selectionHeaders = document.getElementsByClassName('selection-header');
 
-        // You can also add or remove classes
-        // selectionHeader.classList.add('some-class');
-        // selectionHeader.classList.remove('another-class');
-    }
-    function validateQuantity() {
-    var quantityField = document.getElementById('quantity');
-    var submitBtn = document.getElementById('submitBtn');
-
-    if (quantityField && submitBtn) {
-        submitBtn.disabled = quantityField.value.trim() === "";
+    // Apply styles or add/remove classes to each instance
+    for (var i = 0; i < selectionHeaders.length; i++) {
+        selectionHeaders[i].style.display = 'flex';
     }
 }
+
+function clearStylesAfterFiltering() {
+    // Get all elements with the selection-header class
+    var selectionHeaders = document.getElementsByClassName('selection-header');
+
+    // Clear styles or add/remove classes for each instance
+    for (var i = 0; i < selectionHeaders.length; i++) {
+        selectionHeaders[i].style.display = 'grid';
+    }
+}
+emailjs.init("arijit.saha1373@gmail.com"); // Replace with your Email.js user ID
+
+    function subscribe() {
+        var email = document.getElementById('emailInput').value;
+
+        // Validate the email (you can add more validation)
+        if (!/^\S+@\S+\.\S+$/.test(email)) {
+            alert('Invalid email format');
+            return;
+        }
+
+        // Send email using Email.js
+        var templateParams = {
+            to_email: email,
+        };
+
+        emailjs.send('your_service_id', 'your_template_id', templateParams)
+            .then(function (response) {
+                alert('Subscription successful!');
+            }, function (error) {
+                alert('Error sending email. Please try again later.');
+                console.error('Email.js Error:', error);
+            });
+    }
   </script>
   </body>
 </html>

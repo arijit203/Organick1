@@ -248,7 +248,7 @@ class UserForm(FlaskForm):
     username=StringField("Username",validators=[DataRequired()])
     name=StringField("Name",validators=[DataRequired()])
     email=StringField("Email",validators=[DataRequired()])
-    password_hash=PasswordField('Password',validators=[DataRequired(),EqualTo('password_hash2',message='Passwords Must Match!')])
+    password_hash=PasswordField('Password',validators=[DataRequired()])
     password_hash2=PasswordField('Confirm Password',validators=[DataRequired()])
     submit=SubmitField("Sign Up")
 
@@ -508,7 +508,51 @@ def decrease_quantity(item_id):
 
 
 
-@app.route('/save_address', methods=['POST'])
+# @app.route('/save_address', methods=['POST'])
+# def save_address():
+#     edit_mode = request.form.get('edit_mode', 'false').lower() == 'true'
+
+#     if edit_mode:
+#         # This is an edit operation
+#         address_id = request.form.get('address_id')
+#         # Handle updating the existing address with ID address_id
+
+#         # url_for('edit_address', address_id=address_id)
+#         flash("Address updated successfully")
+#     else:
+#         form = AddressForm()
+
+#         if form.validate_on_submit():
+#             # Create a new user address instance
+#             new_user_address = User_address(
+#                 user_id=current_user.id,  # Assuming user_id is associated with the current user
+#                 title=form.title.data,
+#                 receiver_name=form.receiver_name.data,
+#                 delivery_address=form.delivery_address.data,
+#                 address_type=form.save_address_as.data
+#             )
+
+#             # Add the user address to the database
+#             db.session.add(new_user_address)
+#             db.session.commit()
+#             flash("Address added, now Proceed to Payment")
+           
+
+#             addresses = User_address.query.filter_by(user_id=current_user.id).all()
+#             cart_items = db.session.query(Cart, Order_items, Category) \
+#                 .join(Order_items, Cart.item_id == Order_items.id) \
+#                 .join(Category, Order_items.category_id == Category.category_id) \
+#                 .filter(Cart.user_id == current_user.id) \
+#                 .all()
+
+#             return render_template("cart.html", username=current_user.username, cart_items=cart_items, addresses=addresses, form=form)
+#         else:
+#             # Handle form validation errors
+#             flash('Form validation error. Please check your input.', 'error')
+#         return redirect(url_for('cart'))
+    
+
+@app.route('/save_address', methods=['GET','POST'])
 def save_address():
     edit_mode = request.form.get('edit_mode', 'false').lower() == 'true'
 
@@ -551,13 +595,15 @@ def save_address():
             flash('Form validation error. Please check your input.', 'error')
         return redirect(url_for('cart'))
 
-@app.route('/edit_address/<int:address_id>', methods=['GET'])
+
+@app.route('/edit_address/<int:address_id>', methods=['GET','POST'])
 def edit_address(address_id):
    
     # Fetch the address details from the database based on the address_id
     address = User_address.query.get(address_id)
     print("Fetching from edit_address GET")
     # Return the address details as JSON
+
     return jsonify({
         'id': address.id,
         'user_id': address.user_id,
@@ -579,19 +625,26 @@ def update_address(address_id):
         address.receiver_name = request.form['receiver_name']
         address.delivery_address = request.form['delivery_address']
         address.address_type = request.form['save_address_as']
-
+        print("Updated")
+        
         db.session.commit()
 
         # Return success response
         flash('Address updated successfully')
+
+        return redirect(url_for('cart'))
+        # return jsonify({'message': 'Address updated successfully', 'redirect_url': url_for('cart')})
     else:
         # Handle the case where edit_mode is not set
+       
         flash('Invalid request. Please try again.', 'error')
+        return redirect(url_for('cart'))
     
     # Redirect to a relevant page (e.g., cart or a confirmation page)
-    return redirect(url_for('cart'))  # Change 'cart' to the appropriate endpoint
+    # flash('Address updated successfully')
+      # Change 'cart' to the appropriate endpoint
 
-@app.route('/delete_address/<int:address_id>', methods=['GET'])
+@app.route('/delete_address/<int:address_id>', methods=['GET',"POST"])
 def delete_address(address_id):
     # Find the address in the database
     address = User_address.query.filter_by(id=address_id).first()
@@ -602,7 +655,7 @@ def delete_address(address_id):
             # item = Order_items.query.get_or_404(item_id)
             # item.quantity += cart_item.quantity
 
-            
+            print("***************",address.id)
             db.session.delete(address)
             db.session.commit()
             return jsonify({"success": True, "message": "Address successfully removed"})

@@ -52,3 +52,6 @@
     z-index: 99;
 }
 
+.otpverify{
+	display: none;
+}
