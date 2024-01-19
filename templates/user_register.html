@@ -7,6 +7,7 @@
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">    <!-- Include any additional CSS files here -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/register_component.css') }}">
+    <script src="https://smtpjs.com/v3/smtp.js"></script>
 </head>
 <body>
     <!-- Flash Messages -->
@@ -22,7 +23,7 @@
     <div class="container">
         <div class="row">
             <div class="col-md-7 d-flex align-items-center justify-content-center flex-direction-column">
-                <form style="width: 80%; max-width: 500px;" method="POST"  onsubmit="handleSignup(event)" >
+                <form style="width: 80%; max-width: 500px;" method="POST"  onsubmit="return handleSignup(event)">
                     <h1 class='text-center'>Create account</h1>
                     <br>
                     <div class="signup-profile-pic__container">
@@ -46,6 +47,25 @@
                         {{ form.email(class="form-control", id="formBasicEmail", placeholder="Enter email") }}
                         <small class="form-text text-muted">We'll never share your email with anyone else.</small>
                     </div>
+                    <div class="otpverify form-group mb-3">
+                        <input type="text" class='form-control' id="otp_inp" placeholder="Enter the OTP sent to your Email...">
+                        <button class="btn" id="otp-btn" style="padding: 10px;
+                        background-color: #82eec1;
+                        outline: none;
+                        border: none;
+                        cursor: pointer;
+                        border-radius: 5px;
+                        width: 150px;">Verify</button>
+                    </div>
+                    <button class="btn form-group mb-3" onclick="sendOTP()" style="padding: 10px;
+                    background-color: #82eec1;
+                    outline: none;
+                    border: none;
+                    cursor: pointer;
+                    border-radius: 5px;
+                    ">Send OTP</button>
+                    <input type="hidden" id="emailVerified" name="emailVerifiedInput" value="false">
+
                     <div class="form-group mb-3">
                         {{ form.password_hash.label(class="form-label") }}<span style="color:red">*</span>
                         {{ form.password_hash(class="form-control", id="formBasicPassword", placeholder="Password") }}
@@ -53,12 +73,12 @@
                     <div class="form-group mb-3">
                         {{ form.password_hash2.label(class="form-label") }}<span style="color:red">*</span>
                         {{ form.password_hash2(class="form-control", id="formRepeatPassword", placeholder="Repeat Password") }}
-                        {% for error in form.password_hash.errors %}
-                            <small class="form-text text-danger">{{ error }}</small>
-                        {% endfor %}
+                        
+                        <small class="form-text text-danger" id="error"></small>
+                        
                     </div>
                     <div class="text-center">
-                        <button name="signup_btn" type="submit" class="btn btn-primary">
+                        <button name="signup_btn" type="submit" class="btn btn-primary" >
                             Sign Up
                         </button>
                     </div>
@@ -68,6 +88,7 @@
                             Already have an account? <a href="user_login">Login</a>
                         </p>
                     </div>
+                </form>    
             </div>
  
             <div class="col-md-5 signup__bg">
@@ -86,6 +107,141 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
     <!-- Include any additional JS files here -->
-    
+    <script>
+        function verifyEmail() {
+            var email = document.getElementById("formBasicEmail").value;
+            // Add logic to send OTP to email, e.g., through AJAX or backend API
+            // For simplicity, assuming the backend returns success for a valid email
+            if (emailIsValid(email)) {
+                document.getElementById("otp-container").style.display = "block";
+                document.getElementById("send-otp-checkbox").disabled = false;
+                sendOTP();
+            } else {
+                alert("Invalid Email");
+            }
+
+
+            
+        }
+
+        function emailIsValid(email) {
+            // Add email validation logic as needed
+            // For simplicity, assuming any non-empty email is valid
+            return email.trim() !== "";
+        }
+
+        function handleSignup(event) {
+            console.log("hi jesus");
+            event.preventDefault();
+            var otpContainer = document.querySelector('.otpverify');
+            var otpInput = document.getElementById('otp_inp');
+            var otpBtn = document.getElementById('otp-btn');
+
+            var emailVerifiedInput = document.getElementById('emailVerified');
+
+            // Check if the OTP container is visible and OTP is not entered
+            if (otpContainer.style.display === 'block' && otpInput.value.trim() === '') {
+                alert('Please enter the OTP.');
+                event.preventDefault(); // Prevent form submission
+                return false;
+            }
+            if (emailVerifiedInput.value !== 'true') {
+                alert('Email not verified. Please verify your email before submitting the form.');
+                event.preventDefault(); // Prevent form submission
+                console.log("False");
+                return false;
+            }
+            // Check if passwords match
+            var password1 = document.getElementById('formBasicPassword').value;
+            var password2 = document.getElementById('formRepeatPassword').value;
+
+            if (password1 !== password2) {
+                
+                document.getElementById('formBasicPassword').value = '';
+                document.getElementById('formRepeatPassword').value = '';
+                document.getElementById('error').textContent = 'Passwords do not match!';
+                event.preventDefault();
+                return false; // Prevent form submission
+            }
+            event.target.submit();
+            return true;
+           
+        }
+        // function sendOTP() {
+        //     console.log("**")
+        //     const email = document.getElementById('formBasicEmail');
+        //     const otpContainer = document.getElementById('otp-container');
+        //     const otpInput = document.getElementById('otp');
+        //     const sendOtpCheckbox = document.getElementById('send-otp-checkbox');
+
+        //     let otp_val = Math.floor(Math.random() * 10000);
+
+        //     let emailbody = `<h2>Your OTP is </h2>${otp_val}`;
+        //     Email.send({
+        //         SecureToken: "fbebd213-4ddf-45d9-b205-3f5313s01cs3",
+        //         To: email.value,
+        //         From: "arijit.saha1373@gmail.com",
+        //         Subject: "Email OTP using JavaScript",
+        //         Body: emailbody,
+        //     }).then(
+        //         message => {
+        //             if (message === "OK") {
+        //                 alert("OTP sent to your email " + email.value);
+
+        //                 otpContainer.style.display = "block";
+        //                 sendOtpCheckbox.disabled = false;
+
+        //                 const otpBtn = document.getElementById('verify-email-btn');
+        //                 otpBtn.addEventListener('click', () => {
+        //                     if (otpInput.value == otp_val) {
+        //                         alert("Email address verified...");
+        //                     } else {
+        //                         alert("Invalid OTP");
+        //                     }
+        //                 });
+        //             }
+        //         }
+        //     );
+        // }
+        function sendOTP() {
+            event.preventDefault();
+            const email = document.getElementById('formBasicEmail');
+            const otpverify = document.getElementsByClassName('otpverify')[0];
+
+            let otp_val = Math.floor(Math.random() * 10000);
+            var emailVerifiedInput = document.getElementById('emailVerified');
+
+            let emailbody = `<h2>Your OTP is </h2>${otp_val}`;
+            Email.send({
+            SecureToken : "7c33c11a-5a83-42f4-82e9-d310560dc1d5",
+            To : email.value,
+            From : "arijit.saha1373@gmail.com",
+            Subject : "Email OTP using JavaScript",
+            Body : emailbody,
+            }).then(
+
+            message => {
+                if (message === "OK") {
+                    alert("OTP sent to your email " + email.value);
+
+                    otpverify.style.display = "flex";
+                    const otp_inp = document.getElementById('otp_inp');
+                    const otp_btn = document.getElementById('otp-btn');
+
+                    otp_btn.addEventListener('click', () => {
+                        if (otp_inp.value == otp_val) {
+                            alert("Email address verified...");
+                            emailVerifiedInput.value = "true";
+                            event.preventDefault();
+                        }
+                        else {
+                            alert("Invalid OTP. Please Try Again");
+                        }
+                    })
+                }
+            }
+            );
+        }
+    </script>
 </body>
 </html>
