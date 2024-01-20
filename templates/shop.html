@@ -9,6 +9,10 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <link rel="stylesheet" href="static/css/styles.css" />
+    <style>.scrolled {
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Add a box shadow when scrolled */
+      /* Add any other styles you want for the scrolled state */
+  }</style>
     <!-- <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">   -->
   </head>
   <body style="background-color: var(--color-grey)">
@@ -19,7 +23,7 @@
       </div>
         
     {% endfor %}
-
+    <div class="navbar-container">
     <nav class="nav">
       <div class="container nav_container">
         <div class="logo_box">
@@ -43,12 +47,14 @@
           <div class="user_button fas" id="search-btn" >
             <img src="static/images/icon/search.png" alt="search-option" class="user_icon" />
           </div>
-          <form action="" class="search-form" id="search-form">
+          <form action="" class="search-form" id="search-form_1" style="position: fixed;
+          margin-top: 15px;">
             <input type="search" placeholder="Search Here..." id="search-box"></input>
-            <label for="search-box" class="fas fa-search"></label>
+            <button type="submit" id="search-btn">Search</button>
           </form>
         </div>
-        <div class="shopping-cart">
+        <div class="shopping-cart" style="position: fixed;
+        margin-top: 15px;">
           {% if current_user.is_authenticated %}
               {% if cart_items %}
                   {% for cart_item,item,category in cart_items %}
@@ -76,7 +82,8 @@
           {% endif %}
       </div>
       
-        <form method="POST" action="user_login"  class="login-form">
+        <form method="POST" action="user_login"  class="login-form" style="position: fixed;
+        margin-top: 15px;">
           {% if current_user.is_authenticated %}
               
               <h3>Welcome, {{ current_user.username }}!</h3>
@@ -104,11 +111,12 @@
       
       </div>
     </nav>
+    </div>
       
 
     <!-- 3rd page -->
 
-<section class="home" style="margin-top:0rem">
+<section class="home" >
     <div class="slides-container">
       <header class="mini_header shop_header active" >
           <div class="container mini_header_container">
@@ -161,7 +169,7 @@
           <div class="products">
               {% for category in categories %}
                   <div class="category_row">
-                      <h2 class="category_header">{{ category.category_name }}</h2>
+                      <h2 class="category_header" style="font-size: larger;">{{ category.category_name }}</h2>
                       <div class="selection-header">
                       {% for item in category_items_dict[category.category_id][:7] %}
                           <div class="product_card">
@@ -169,12 +177,8 @@
                                   <img src="static/images/items/{{ item.name|replace(' ', '_')|lower }}.png" alt="{{ item.name }}" class="product_img" />
                                   <h3 class="product_title">{{ item.name }}</h3>
                                   <div class="product_footer">
-                                      <h4 class="product_price">Rs. {{ item.price }} per {{ item.unit[item.unit.find("/")+1:] }}</h4>
-                                      <div class="product_rating">
-                                          {% for i in range(5) %}
-                                              <img src="static/images/icon/star.png" alt="" class="star">
-                                          {% endfor %}
-                                      </div>
+                                      <h4 class="product_price" style="font-size: small;">Rs. {{ item.price }} per {{ item.unit[item.unit.find("/")+1:] }}</h4>
+                                      
                                       <br>        
                                   </div>
                                   <div class="line">
@@ -192,14 +196,15 @@
                                 <input type="number" name="quantity" class="quantity_box" placeholder="Quantity" min="1" max="{{ item.quantity }}" id="quantity">
                                 <input type="hidden" name="cart_id" value="{{ cart_item.cart_id if cart_item else '' }}">
                                 
-                                <button type="submit" class="add_to_cart_btn" id="submitBtn" onclick="validateQuantity()">
+                                <button type="submit" class="add_to_cart_btn" id="submitBtn" >
                                   <img src="static/images/cart.png" alt="Add to Cart" class="cart_symbol">
                               </button>
                             
                                 {% else %}  
-                                <button style="width: 100%;">
+                                <button style="width: 100%; padding-bottom: 10px;padding-top: 10px;">
                                   <span style="color: rgba(0, 106, 255, 0.594); " >No Stock</span>
                                 </button>
+                                <div style="padding-bottom: 10px;"></div>
                                 {% endif %}
                               </form>  
                           </div>
@@ -291,19 +296,29 @@
                     scrollPosition = window.scrollY;
                     setTimeout(function () {
                     location.reload();
-                }, 3000);
+                }, 2000);
                 } else {
                     // Show an error message using your custom function
-                    showMessageBox(response.error, false);
+                    $('.quantity_box').val('');
+                    console.log("Pls Help Fast!");
+                    showMessageBox(jqXHR.responseJSON.error, false);
+
                 }
             },
             error: function (jqXHR, textStatus, errorThrown) {
         if (jqXHR.responseJSON && jqXHR.responseJSON.error) {
             // Show the error message received from the server
+            $('.quantity_box').val('');
             showMessageBox(jqXHR.responseJSON.error, false);
+            setTimeout(function () {
+                window.location.href = '/user_login';
+            }, 1500);
         } else {
             // Show a generic error message for other types of errors
             showMessageBox("Please Sign in to Add Item to Cart", false);
+            setTimeout(function () {
+                window.location.href = '/user_login';
+            }, 2000);
         }
         console.error('AJAX error:', textStatus, errorThrown);
     }
@@ -320,7 +335,7 @@
             $('#flashMessage').alert('close');
         }, 2000);
 
-       
+    
     // Hide all categories initially
    
     $(document).ready(function() {
@@ -336,7 +351,7 @@
 
     $('#search-form').on('input', function() {
         var searchTerm = $('#search-box').val().toLowerCase();
-
+        
         // Hide all categories and product cards initially
         $('.category_row, .product_card').hide();
 
@@ -353,15 +368,13 @@
         });
 
         updateStylesAfterFiltering();
-    });
-
-    // Add a handler to clear styles when search box is cleared
-    $('#search-box').on('input', function() {
-        var searchTerm = $(this).val().toLowerCase();
         if (searchTerm === '') {
             clearStylesAfterFiltering();
         }
     });
+
+    // Add a handler to clear styles when search box is cleared
+    
 });
 
 function updateStylesAfterFiltering() {
@@ -407,6 +420,17 @@ emailjs.init("arijit.saha1373@gmail.com"); // Replace with your Email.js user ID
                 console.error('Email.js Error:', error);
             });
     }
+    document.addEventListener('DOMContentLoaded', function () {
+    var navbar = document.querySelector('.navbar-container');
+
+    window.addEventListener('scroll', function () {
+        if (window.scrollY > 0) {
+            navbar.classList.add('scrolled');
+        } else {
+            navbar.classList.remove('scrolled');
+        }
+    });
+});
   </script>
   </body>
 </html>
