@@ -1191,7 +1191,7 @@ $box-shadow:0.5rem 1rem rgba(0,0,0,0.1); */
   #next-slide,
   #prev-slide{
     position:absolute;
-    top:40%;
+    top:37%;
     transform:translateY(-50%);
     height: 5rem;
     width:5rem;
@@ -1245,3 +1245,32 @@ $box-shadow:0.5rem 1rem rgba(0,0,0,0.1); */
   padding-left: 850px;
   margin-top: -20px;
 }
+
+
+
+.navbar-container {
+  position: fixed;
+  top: 0;
+  width: 100%;
+  background-color: #fff;
+  z-index: 999; /* Set the background color of your navbar */
+   /* Set a higher z-index to make sure the navbar appears above other elements */
+}
+
+.alert {
+  z-index: 1000; /* Adjust the value as needed */
+}
+
+
+
+#flashMessage {
+  
+  padding-left: 30px;
+  font-size: large;
+  z-index: 2000; /* Adjust the value based on your navbar height */
+  background-color: var(--color-grey);
+}
+
+
+
+

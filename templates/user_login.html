@@ -8,7 +8,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">    <!-- Include any additional CSS files here -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/login_component.css') }}">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Recursive:wght@300&display=swap" />
-
+    <script src="https://smtpjs.com/v3/smtp.js"></script>
 </head>
 <body>
     <!-- Flash Messages -->
@@ -41,10 +41,14 @@
                         {{ form.email.label(class="form-label") }} <span style="color:red">*</span>
                         {{ form.email(class="form-control", placeholder="Enter email", required=true) }}
                     </div>
-                    <div class="mb-3">
+                    <div class="mb-3" style="margin-bottom: 0.5rem!important;">
                         {{ form.password_hash.label(class="form-label") }} <span style="color:red">*</span>
                         {{ form.password_hash(class="form-control", placeholder="Enter Password", required=true) }}
                     </div>
+                    
+                    <p>
+                        <a href="#" id="forgot-password-link" data-bs-toggle="modal" data-bs-target="#forgotPasswordModal"> Forgot your password? </a>                    
+                    </p>
                     
                     <button class="btn btn-primary" type="submit">
                         {% if isLoading %}<div class="spinner-grow" role="status"></div>{% else %}Login{% endif %}
@@ -55,11 +59,79 @@
                         </p>
                     </div>
                 </form>
+
             </div>
         </div>
     </div>
 
+    <div class="modal fade" id="forgotPasswordModal" tabindex="-1" aria-labelledby="forgotPasswordModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="forgotPasswordModalLabel" style="padding-left: 150px">Forgot Password</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <!-- Form for email input and OTP verification -->
+                    <form method="POST" action="/forgot_password" id="forgotPasswordForm">
+                        <div class="mb-3">
+                            <label for="inputEmail" class="form-label">Email address</label>
+                            <input type="email" class="form-control" id="inputEmail" name="email" placeholder="Enter email" required>
+                        </div>
+                        
+    
+                        <!-- OTP verification section -->
+                        <div class="otpverify" id="otp-container" style="display: none;">
+                            <div class="mb-3">
+                                <label for="otpInput" class="form-label">Enter OTP</label>
+                                <input type="text" class="form-control" id="otp_inp" placeholder="Enter OTP send to Email" required>
+                            </div>
+                            <button type="button" class="btn btn-primary" id="otp_btn" >Verify OTP</button>
+                        </div>
+                        <input type="hidden" id="emailVerified" name="emailVerifiedInput" value="false">
+                        <button type="button" id="reset-password" class="btn btn-primary" onclick="verifyEmail()">Reset Password</button>
+                    </form>
+                </div>
+            </div>
+            
+            
+            
+        </div>
+    </div>
+    
+    
+    <!-- Reset Password Modal -->
+    <div class="modal fade" id="resetPasswordModal" tabindex="-1" aria-labelledby="resetPasswordModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="resetPasswordModalLabel">Reset Password</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
 
+                    <form method="POST" action="/reset_password" id="resetPasswordForm">
+                        {{ form.csrf_token }}
+                        <input id="setEmail" type="hidden" name="userEmail" value="hiddenValue">
+                        <div id="password-reset-container">
+                            <!-- ... (your form fields for resetting the password) -->
+                            <div class="mb-3">
+                                <label for="newPassword" class="form-label">New Password</label>
+                                <input type="password" class="form-control" id="newPassword" name="newPassword" placeholder="Enter new password">
+                            </div>
+                            <div class="mb-3">
+                                <label for="confirmPassword" class="form-label">Confirm Password</label>
+                                <input type="password" class="form-control" id="confirmPassword" name="confirmPassword" placeholder="Confirm new password">
+                            </div>
+                        </div>
+                        <button class="btn btn-primary" onclick="validateAndResetPassword()">Reset Password</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    
 
 
 
@@ -68,6 +140,167 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
     <!-- Include any additional JS files here -->
+    <script>
+        function verifyEmail() {
+            event.preventDefault();
+            var email = document.getElementById("inputEmail").value;
+            console.log(email)
+            // Add logic to send OTP to email, e.g., through AJAX or backend API
+            // For simplicity, assuming the backend returns success for a valid email
+           
+            EmailValidationMessage=emailIsValid(email)
+            if ( EmailValidationMessage=="valid") {
+                document.getElementById("otp-container").style.display = "block";
+                document.getElementById("reset-password").style.display = "none";
+                RemoveErrorMessage('inputEmail');
+                sendOTP();
+            } else {
+                ShowErrorMessage('inputEmail',EmailValidationMessage);
+            }
+
+        }
+        function ShowErrorMessage(InputBoxID,Message){
+            if(Message=='') return;
+            console.log(InputBoxID);
+            var InputBox = document.getElementById(InputBoxID);
+            InputBox.value='';
+            InputBox.classList.add('error-input');
+            InputBox.style.borderColor = 'red';
+            InputBox.focus();
+
+            var ErrorMessageElement = document.createElement("p");
+            ErrorMessageElement.innerHTML = Message;
+            ErrorMessageElement.classList.add('error-message');
+            ErrorMessageElement.style.color = 'red';  // Set the text color
+            ErrorMessageElement.style.fontSize = '0.8rem';
+            
+
+            ErrorMessageElement.setAttribute("id",InputBoxID+'-error');
+
+            InputBox.parentNode.insertBefore(ErrorMessageElement, InputBox.nextSibling);
+
+        }
+
+        function RemoveErrorMessage(inputId) {
+            var errorMessageElement = document.getElementById(inputId + '-error');
+            if (errorMessageElement) {
+                errorMessageElement.remove();
+
+                // Remove 'error-input' class from the input element
+                var inputElement = document.getElementById(inputId);
+                inputElement.classList.remove('error-input');
+            }
+        }
+
+
+        
+        function emailIsValid(email){
+
+            const emailRegex = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+
+            if(email == ""){
+                return "Please fill the field.";
+            }
+
+            if(emailRegex.test(email) == false){
+                return "This is not a valid email.";
+            }
+
+            return "valid";
+        }
+
+        function sendOTP() {
+            const email = document.getElementById('inputEmail');
+            const otpverify = document.getElementsByClassName('otpverify')[0];
+
+            let otp_val =Math.floor(Math.random() * 9000) + 1000; 
+            var emailVerifiedInput = document.getElementById('emailVerified');
+
+            let emailbody = `<h2>Your OTP is </h2>${otp_val}`;
+            Email.send({
+                SecureToken: "7c33c11a-5a83-42f4-82e9-d310560dc1d5",
+                To: email.value,
+                From: "arijit.saha1373@gmail.com",
+                Subject: "Email OTP for Password Reset",
+                Body: emailbody,
+            }).then(
+
+                message => {
+                    if (message === "OK") {
+                        alert("OTP sent to your email " + email.value);
+
+                        const otp_inp = document.getElementById('otp_inp');
+                        const otp_btn = document.getElementById('otp_btn');
+
+                        otp_btn.addEventListener('click', () => {
+                        if (otp_inp.value == otp_val) {
+                            alert("Email address verified...");
+                            emailVerifiedInput.value = "true";
+                            userEmail = document.getElementById('inputEmail').value;
+                            const forgotPasswordModal = new bootstrap.Modal(document.getElementById('forgotPasswordModal'));
+                            const resetPasswordModal = new bootstrap.Modal(document.getElementById('resetPasswordModal'));
+                            forgotPasswordModal.hide(); // Close the Forgot Password modal
+
+                            setEmail=document.getElementById('setEmail');
+                            setEmail.value=userEmail;
+                            resetPasswordModal.show(); // Show the Reset Password modal
+                            
+                            event.preventDefault();
+                        } else {
+                            alert("Invalid OTP. Please Try Again");
+                        }
+                    });
+                    }
+                }
+            );
+        }
+
+        function validateAndResetPassword() {
+            event.preventDefault();
+            const newPassword = document.getElementById('newPassword').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+
+            // Validate passwords
+            const validationMessage = isValidPassword(newPassword);
+
+            if (validationMessage === 'valid') {
+                // Check if passwords match
+                if (newPassword === confirmPassword) {
+                    // Submit the form or redirect to the login page
+                    alert('Password reset successfully! Redirecting to login page...');
+                    // Add logic to submit form or redirect to login page
+                    document.getElementById('resetPasswordForm').submit();
+                } else {
+                    RemoveErrorMessage('newPassword');
+                    ShowErrorMessage('confirmPassword','Passwords do not match!');
+                }
+            } 
+            else {
+                RemoveErrorMessage('newPassword')
+                ShowErrorMessage('newPassword',validationMessage);
+                
+            }
+        }
+        function isValidPassword(password) {
+	
+            const minLength = 8;
+            const maxLength = 32;
+            const letterNumberRegexSpecialChar = /^(?=.*[a-zA-Z])(?=.*\d)(?=.*[!@#$%^&*])[a-zA-Z\d!@#$%^&*]{8,}$/;
+
+            if(password == ""){
+                return "Please fill the field."
+            }
+
+            if (password.length < minLength || password.length > maxLength) {
+                return "Password length should be minimum 8 & maximum 32 characters.";
+            }
+
+            if (!letterNumberRegexSpecialChar.test(password)) {
+                return "Password should contain alphabetic, numeric and special characters.";
+            }
+            return "valid";
+        }
+    </script>
     
 </body>
 </html>

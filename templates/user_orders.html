@@ -34,7 +34,7 @@
           <div class="logo_box"><img src="static/images/icon/Logo.svg" alt="" class="logo"/></div>
         </div>
         <ul class="nav_list">
-          <li class="nav_item"><a href="index" class="nav_link">Home</a></li>
+          <li class="nav_item"><a href="home" class="nav_link">Home</a></li>
           <li class="nav_item"><a href="about" class="nav_link">About</a></li>
           <li class="nav_item"><a href="shop" class="nav_link">Shop</a></li>
           <li class="nav_item"><a href="portfolio" class="nav_link">Projects</a></li>
@@ -112,7 +112,7 @@
       </div>
     </nav>
 
-    <div class="container1">
+    <div class="container1" style="overflow: auto;">
         <div class="sidebar">
             <div class="options">
                 <a href="#" onclick="showAddresses()">Addresses</a>
@@ -198,8 +198,11 @@
                                                 <div class="value" id="MRP"> ₹</div>
                                             </div>
                                             <div class="bill-details-row" id="discountDetails" style="display: none;">
-                                                <div class="label">Product Discount(<span id="discountCode"></span>)</div>
-                                                <div class="value" id="discountValue">-₹</div>
+                                                <div class="label">Product Discount(<span id="discountCode"></span>)
+                                                    
+                                                </div>
+                                                <div  id="discountValue">-₹</div></span>
+                                                
                                             </div>
                                             <div class="bill-details-row">
                                                 <div class="label">Delivery Charges</div>

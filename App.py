@@ -5,7 +5,7 @@ from sqlalchemy import exists
 from sqlalchemy.exc import SQLAlchemyError
 from flask_wtf import FlaskForm
 from wtforms import StringField,SubmitField,PasswordField,BooleanField,ValidationError,IntegerField,FloatField,SelectField,RadioField
-from wtforms.validators import DataRequired,EqualTo,Length,NumberRange
+from wtforms.validators import DataRequired,EqualTo,Length,NumberRange,Email
 from flask_wtf.csrf import generate_csrf
 from functools import wraps
 import matplotlib
@@ -65,8 +65,8 @@ def load_user(user_id):
 
 
 
-@app.route('/index')
-def primary():
+@app.route('/home')
+def home():
     form=UserForm()
     cartform=Cart()
     username = request.args.get('username')
@@ -239,7 +239,7 @@ def contact():
 
  
 class LoginForm(FlaskForm):
-    email=StringField("Email",validators=[DataRequired()])
+    email=StringField("Email",validators=[DataRequired(),Email()])
     password_hash=PasswordField("Password",validators=[DataRequired()])
     submit=SubmitField("Login")
 
@@ -247,10 +247,43 @@ class LoginForm(FlaskForm):
 class UserForm(FlaskForm):
     username=StringField("Username",validators=[DataRequired()])
     name=StringField("Name",validators=[DataRequired()])
-    email=StringField("Email",validators=[DataRequired()])
+    email=StringField("Email",validators=[DataRequired(),Email()])
     password_hash=PasswordField('Password',validators=[DataRequired()])
     password_hash2=PasswordField('Confirm Password',validators=[DataRequired()])
     submit=SubmitField("Sign Up")
+
+@app.route('/check_email', methods=['POST'])
+def check_email():
+    # Retrieve the email from the AJAX request
+    email = request.form.get('email')
+
+    # Check if the email exists in the database (modify this based on your database model)
+    user_exists = Users.query.filter_by(email=email).first() is not None
+
+    # Return a JSON response indicating whether the email exists
+    return jsonify({'exists': user_exists})
+
+
+@app.route('/reset_password', methods=['POST'])
+def reset_password():
+   
+    new_password = request.form.get('newPassword')
+    userEmail=request.form.get('userEmail')
+
+    # Update the user's password in the database
+    user = Users.query.filter_by(email=userEmail).first()  # Replace with actual email
+    if user:
+        hashed_pw = generate_password_hash(new_password)
+        user.password_hash = hashed_pw
+        db.session.commit()
+        print(new_password)
+        print(hashed_pw)
+        flash('Password reset successfully! Please log in.')
+        return redirect(url_for('login'))  # Redirect to login page after successful password reset
+    else:
+        flash('User not found!')
+    
+
 
 @app.route('/user_register', methods=['GET', 'POST'])
 def add_user():
@@ -320,8 +353,9 @@ def login():
                 session['is_user']=True
                 
                 flash('Login successful!', 'success')
-                next_url = request.form.get('next')
-                return redirect(url_for('shop'))
+                next_url = request.args.get('next')
+                print("Gone to :",next_url)
+                return redirect(next_url or url_for('home'))
 
             else:
                 flash('Invalid or Wrong Password - Try Again!!')    
@@ -329,6 +363,23 @@ def login():
             flash("That User doesn't exist! Try Again...")            
     return render_template('user_login.html',form=form)
 
+class ForgotPasswordForm(FlaskForm):
+    email = StringField('Email', validators=[DataRequired(), Email()])
+    submit = SubmitField('Reset Password')
+@app.route('/forgot_password', methods=['GET', 'POST'])
+def forgot_password():
+    form = ForgotPasswordForm()
+    
+
+    if form.validate_on_submit():
+        # Here you can add logic to handle the forgot password functionality.
+        # For simplicity, let's assume you have a User model with an email field.
+        # You might want to generate a token for resetting the password and send an email.
+        # For now, let's just display a flash message.
+        flash(f"A password reset link has been sent to {form.email.data}.", 'success')
+        return redirect(url_for('login'))  # Redirect to the login page after handling the forgot password request
+
+    return render_template('forgot_password.html', form=form)
 
 
 @app.route('/user',methods=["GET","POST"])
@@ -370,7 +421,11 @@ def add_to_cart():
 
     item_id = request.form.get('item_id')
     category_id = request.form.get('category_id')
-    quantity = request.form.get('quantity', 1)  # Default to 1 if quantity is not provided
+    quantity = request.form.get('quantity')  
+    if quantity=='':
+        return jsonify({'Item could be added!'})
+    
+    quantity=int(quantity)
 
     item = Order_items.query.get_or_404(item_id)
     cart_item = Cart.query.filter_by(item_id=item_id, category_id=category_id, user_id=current_user.id).first()
@@ -385,13 +440,47 @@ def add_to_cart():
            
             db.session.commit()
             # Return a JSON response indicating success
-            return jsonify({'status': 'success'})
+            return jsonify({'success': 'Item added to your cart'}), 200
     else:
         new_cart_item = Cart(category_id=category_id, item_id=item_id, user_id=current_user.id, username=current_user.username, quantity=quantity)
         db.session.add(new_cart_item)
         db.session.commit()
         # Return a JSON response indicating success
         return jsonify({'success': 'Item added to your cart'}), 200
+    
+
+@app.route('/fetch_items', methods=['GET'])
+def fetch_items():
+    search_term = request.args.get('searchTerm')
+    category_id = request.args.get('categoryId')
+
+    # Assuming you have a function to fetch items from the database based on search term and category
+    items = get_items_from_database(search_term, category_id)
+
+    # Render the product cards HTML using a template
+    html = render_template('product_cards_template.html', items=items)
+
+    return jsonify({'html': html})
+
+@app.route('/search_items', methods=['GET'])
+def search_items():
+    search_term = request.form.get('search_term')
+    
+    # Perform the search in the database based on the search term
+    results = Order_items.query.filter(Order_items.name.ilike(f'%{search_term}%')).all()
+    
+    # Convert the results to a list of dictionaries or a format suitable for JSON
+    items = [{'id': item.id, 'name': item.name, 'price': item.price} for item in results]
+    print(items)
+    return jsonify(items)
+
+
+def get_items_from_database(search_term, category_id):
+    # Implement your logic to query the database and retrieve items
+    # This is just a placeholder, replace it with your actual database query logic
+    items = Order_items.query.filter(Order_items.category_id == category_id, Order_items.name.ilike(f"%{search_term}%")).all()
+
+    return items
 
 @app.route("/delete_from_cart/<int:item_id>",methods=['GET','POST'])
 def delete_from_cart(item_id):
@@ -737,7 +826,7 @@ def get_discount(promo_code,totalAmount):
         if int(totalAmount) - discount.amount >= 50:
             return jsonify({'success': True, 'amount': discount.amount})
         else:
-            return jsonify({'success': False, 'message': "Minimum Amount of Purchase should be ₹150"})
+            return jsonify({'success': False, 'message': "Minimum Amount of Purchase to avail this discount should be ₹150"})
         # return jsonify({'success': True, 'amount': discount.amount})
     else:
         return jsonify({'success': False, 'message': 'Invalid Discount Code'})

@@ -47,7 +47,9 @@
                         {{ form.email(class="form-control", id="formBasicEmail", placeholder="Enter email") }}
                         <small class="form-text text-muted">We'll never share your email with anyone else.</small>
                     </div>
-                    <div class="otpverify form-group mb-3">
+
+                    <div class="otpverify form-group mb-3" id="otp-container" style="display: none;">
+                        <div style="display: flex;">
                         <input type="text" class='form-control' id="otp_inp" placeholder="Enter the OTP sent to your Email...">
                         <button class="btn" id="otp-btn" style="padding: 10px;
                         background-color: #82eec1;
@@ -56,8 +58,9 @@
                         cursor: pointer;
                         border-radius: 5px;
                         width: 150px;">Verify</button>
+                        </div>
                     </div>
-                    <button class="btn form-group mb-3" onclick="sendOTP()" style="padding: 10px;
+                    <button class="btn form-group mb-3" onclick="verifyEmail()" style="padding: 10px;
                     background-color: #82eec1;
                     outline: none;
                     border: none;
@@ -109,25 +112,51 @@
     <!-- Include any additional JS files here -->
     <script>
         function verifyEmail() {
+            event.preventDefault();
             var email = document.getElementById("formBasicEmail").value;
+            console.log(email)
             // Add logic to send OTP to email, e.g., through AJAX or backend API
             // For simplicity, assuming the backend returns success for a valid email
-            if (emailIsValid(email)) {
+           
+            EmailValidationMessage=emailIsValid(email)
+            if ( EmailValidationMessage=="valid") {
                 document.getElementById("otp-container").style.display = "block";
-                document.getElementById("send-otp-checkbox").disabled = false;
+                RemoveErrorMessage('formBasicEmail');
                 sendOTP();
             } else {
-                alert("Invalid Email");
+                ShowErrorMessage('formBasicEmail',EmailValidationMessage);
             }
 
 
             
         }
 
-        function emailIsValid(email) {
-            // Add email validation logic as needed
-            // For simplicity, assuming any non-empty email is valid
-            return email.trim() !== "";
+        function RemoveErrorMessage(inputId) {
+            var errorMessageElement = document.getElementById(inputId + '-error');
+            if (errorMessageElement) {
+                errorMessageElement.remove();
+
+                // Remove 'error-input' class from the input element
+                var inputElement = document.getElementById(inputId);
+                inputElement.classList.remove('error-input');
+            }
+        }
+
+
+
+        function emailIsValid(email){
+
+            const emailRegex = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+
+            if(email == ""){
+                return "Please fill the field.";
+            }
+
+            if(emailRegex.test(email) == false){
+                return "This is not a valid email.";
+            }
+
+            return "valid";
         }
 
         function handleSignup(event) {
@@ -154,6 +183,18 @@
             // Check if passwords match
             var password1 = document.getElementById('formBasicPassword').value;
             var password2 = document.getElementById('formRepeatPassword').value;
+            PasswordValidationMessage = isValidPassword(password1);
+            if(PasswordValidationMessage != "valid"){
+                RemoveErrorMessage('formBasicPassword')
+                ShowErrorMessage('formBasicPassword',PasswordValidationMessage);
+                return false;
+            }
+            else{
+                RemoveErrorMessage('formBasicPassword')
+            }
+            
+            
+           
 
             if (password1 !== password2) {
                 
@@ -167,48 +208,33 @@
             return true;
            
         }
-        // function sendOTP() {
-        //     console.log("**")
-        //     const email = document.getElementById('formBasicEmail');
-        //     const otpContainer = document.getElementById('otp-container');
-        //     const otpInput = document.getElementById('otp');
-        //     const sendOtpCheckbox = document.getElementById('send-otp-checkbox');
+        function isValidPassword(password) {
+	
+            const minLength = 8;
+            const maxLength = 32;
+            const letterNumberRegexSpecialChar = /^(?=.*[a-zA-Z])(?=.*\d)(?=.*[!@#$%^&*])[a-zA-Z\d!@#$%^&*]{8,}$/;
 
-        //     let otp_val = Math.floor(Math.random() * 10000);
+            if(password == ""){
+                return "Please fill the field."
+            }
 
-        //     let emailbody = `<h2>Your OTP is </h2>${otp_val}`;
-        //     Email.send({
-        //         SecureToken: "fbebd213-4ddf-45d9-b205-3f5313s01cs3",
-        //         To: email.value,
-        //         From: "arijit.saha1373@gmail.com",
-        //         Subject: "Email OTP using JavaScript",
-        //         Body: emailbody,
-        //     }).then(
-        //         message => {
-        //             if (message === "OK") {
-        //                 alert("OTP sent to your email " + email.value);
+            if (password.length < minLength || password.length > maxLength) {
+                return "Password length should be minimum 8 & maximum 32 characters.";
+            }
 
-        //                 otpContainer.style.display = "block";
-        //                 sendOtpCheckbox.disabled = false;
+            if (!letterNumberRegexSpecialChar.test(password)) {
+                return "Password should contain alphabetic, numeric and special characters.";
+            }
+            return "valid";
+        }
 
-        //                 const otpBtn = document.getElementById('verify-email-btn');
-        //                 otpBtn.addEventListener('click', () => {
-        //                     if (otpInput.value == otp_val) {
-        //                         alert("Email address verified...");
-        //                     } else {
-        //                         alert("Invalid OTP");
-        //                     }
-        //                 });
-        //             }
-        //         }
-        //     );
-        // }
+        
         function sendOTP() {
             event.preventDefault();
             const email = document.getElementById('formBasicEmail');
             const otpverify = document.getElementsByClassName('otpverify')[0];
 
-            let otp_val = Math.floor(Math.random() * 10000);
+            let otp_val =Math.floor(Math.random() * 9000) + 1000; 
             var emailVerifiedInput = document.getElementById('emailVerified');
 
             let emailbody = `<h2>Your OTP is </h2>${otp_val}`;
@@ -216,7 +242,7 @@
             SecureToken : "7c33c11a-5a83-42f4-82e9-d310560dc1d5",
             To : email.value,
             From : "arijit.saha1373@gmail.com",
-            Subject : "Email OTP using JavaScript",
+            Subject : "Email OTP For Organick Registration",
             Body : emailbody,
             }).then(
 
@@ -235,13 +261,36 @@
                             event.preventDefault();
                         }
                         else {
+
                             alert("Invalid OTP. Please Try Again");
+                            event.preventDefault();
                         }
                     })
                 }
             }
             );
         }
+        function ShowErrorMessage(InputBoxID,Message){
+            if(Message=='') return;
+            var InputBox = document.getElementById(InputBoxID);
+            InputBox.value='';
+            InputBox.classList.add('error-input');
+            InputBox.style.borderColor = 'red';
+            InputBox.focus();
+
+            var ErrorMessageElement = document.createElement("p");
+            ErrorMessageElement.innerHTML = Message;
+            ErrorMessageElement.classList.add('error-message');
+            ErrorMessageElement.style.color = 'red';  // Set the text color
+            ErrorMessageElement.style.fontSize = '0.8rem';
+            
+
+            ErrorMessageElement.setAttribute("id",InputBoxID+'-error');
+
+            InputBox.parentNode.insertBefore(ErrorMessageElement, InputBox.nextSibling);
+
+        }
+        
     </script>
 </body>
 </html>

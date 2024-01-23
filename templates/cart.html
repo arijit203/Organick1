@@ -80,35 +80,41 @@
 </head>
 <body>
     <!-- Flash Messages -->
-    {% for message in get_flashed_messages() %}
-    <div class="alert alert-primary alert-dismissible fade show" role="alert" id="flashMessage">
-        <strong>{{message}}</strong> 
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-      </div>
-        
-    {% endfor %}
+    
     <nav class="nav" style="padding-left:400px">
+       
         <div class="container nav_container">
           <div class="logo_box">
             <div class="logo_box"><img src="static/images/icon/Logo.svg" alt="" class="logo"/></div>
           </div>
           <ul class="nav_list">
-            <li class="nav_item"><a href="index" class="nav_link">Home</a></li>
+            <li class="nav_item"><a href="home" class="nav_link">Home</a></li>
             <li class="nav_item"><a href="about" class="nav_link">About</a></li>
             <li class="nav_item"><a href="shop" class="nav_link">Shop</a></li>
             <li class="nav_item"><a href="/portfolio" class="nav_link">Projects</a></li>
             <li class="nav_item"><a href="/blog" class="nav_link">News</a></li>
             <li class="nav_item"><a href="/contact" class="nav_link">Contact</a></li>
           </ul>
-      
-      </nav>
-        
+          {% for message in get_flashed_messages() %}
+      <div class="alert alert-primary alert-dismissible fade show" role="alert" id="flashMessage" style="margin-top: 200px;
+      margin-left: 190px;">
+          <strong>{{message}}</strong> 
+          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+          
+      {% endfor %}
   
+      </nav>
+      
         
 
     <div class="container cart-container">
         <div class="row">
-            <div class="col-md-5 cart__bg" style="height: auto;width: 51%;min-height: 97vh;"></div>
+            <div class="col-md-5 cart__bg" style="height: auto;
+            width: 685px;
+            min-height: 97vh;
+            max-height: 105vh;
+            margin-top: initial;"></div>
             <div class="col-md-7 d-flex align-items-center justify-content-center flex-direction-column space" style="margin-left:30px;margin-top:-4%">
                 
                 <div>
@@ -144,10 +150,10 @@
                                                 data-item-price="{{ item.price }}"
                                                 data-item-image="static/images/items/{{ item.name|replace(' ', '_')|lower }}.png"
                                                 data-item-unit="{{item.unit.split('/')[1]}}"
-                                                style="font-size: 1rem;"
+                                                style="font-size: 1.2rem;"
                                                 >
                                                 
-                                                    More Information
+                                                    Details
                                                 </button>
                                             </div>
                                         </div>
