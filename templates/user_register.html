@@ -8,6 +8,8 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">    <!-- Include any additional CSS files here -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/register_component.css') }}">
     <script src="https://smtpjs.com/v3/smtp.js"></script>
+    
+    
 </head>
 <body>
     <!-- Flash Messages -->
@@ -23,7 +25,7 @@
     <div class="container">
         <div class="row">
             <div class="col-md-7 d-flex align-items-center justify-content-center flex-direction-column">
-                <form style="width: 80%; max-width: 500px;" method="POST"  onsubmit="return handleSignup(event)">
+                <form style="width: 80%; max-width: 500px;" method="POST" action="/user_register" onsubmit="return handleSignup(event)">
                     <h1 class='text-center'>Create account</h1>
                     <br>
                     <div class="signup-profile-pic__container">
@@ -43,32 +45,18 @@
                         {{ form.username(class="form-control", id="formBasicUsername", placeholder="Your username") }}
                     </div>
                     <div class="form-group mb-3">
-                        {{ form.email.label(class="form-label") }}<span style="color:red">*</span>
+                        {{ form.email.label(class="form-label form-email") }}<span style="color:red">*</span>
                         {{ form.email(class="form-control", id="formBasicEmail", placeholder="Enter email") }}
                         <small class="form-text text-muted">We'll never share your email with anyone else.</small>
                     </div>
 
-                    <div class="otpverify form-group mb-3" id="otp-container" style="display: none;">
-                        <div style="display: flex;">
-                        <input type="text" class='form-control' id="otp_inp" placeholder="Enter the OTP sent to your Email...">
-                        <button class="btn" id="otp-btn" style="padding: 10px;
-                        background-color: #82eec1;
-                        outline: none;
-                        border: none;
-                        cursor: pointer;
-                        border-radius: 5px;
-                        width: 150px;">Verify</button>
-                        </div>
-                    </div>
-                    <button class="btn form-group mb-3" onclick="verifyEmail()" style="padding: 10px;
+                    <button class="btn form-group mb-3" onclick="verifyEmail(event)" style="
                     background-color: #82eec1;
                     outline: none;
                     border: none;
                     cursor: pointer;
-                    border-radius: 5px;
-                    ">Send OTP</button>
+                    border-radius: 5px;">Send OTP</button>
                     <input type="hidden" id="emailVerified" name="emailVerifiedInput" value="false">
-
                     <div class="form-group mb-3">
                         {{ form.password_hash.label(class="form-label") }}<span style="color:red">*</span>
                         {{ form.password_hash(class="form-control", id="formBasicPassword", placeholder="Password") }}
@@ -81,7 +69,7 @@
                         
                     </div>
                     <div class="text-center">
-                        <button name="signup_btn" type="submit" class="btn btn-primary" >
+                        <button name="signup_btn" type="submit" class="btn btn-primary" style="font-size: large;">
                             Sign Up
                         </button>
                     </div>
@@ -103,7 +91,40 @@
         </div>
     </div>
 
-   
+   <!-- Bootstrap Modal -->
+    <div class="modal fade" id="otpModal" tabindex="-1" aria-labelledby="otpModalLabel" aria-hidden="true" style="padding-top: 230px;">
+        <div class="modal-dialog">
+            <div class="modal-content" style="display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;">
+            
+                <div class="modal-body">
+                    <div style="height: 65px;
+                    width: 65px;
+                    background: #4070f4;
+                    color: #fff;
+                    font-size: 2.5rem;
+                    border-radius: 50%;margin-left: 60px;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="64" height="32" fill="currentColor" class="bi bi-shield-fill-check" viewBox="0 0 16 16">
+                        <path fill-rule="evenodd" d="M8 0c-.69 0-1.843.265-2.928.56-1.11.3-2.229.655-2.887.87a1.54 1.54 0 0 0-1.044 1.262c-.596 4.477.787 7.795 2.465 9.99a11.8 11.8 0 0 0 2.517 2.453c.386.273.744.482 1.048.625.28.132.581.24.829.24s.548-.108.829-.24a7 7 0 0 0 1.048-.625 11.8 11.8 0 0 0 2.517-2.453c1.678-2.195 3.061-5.513 2.465-9.99a1.54 1.54 0 0 0-1.044-1.263 63 63 0 0 0-2.887-.87C9.843.266 8.69 0 8 0m2.146 5.146a.5.5 0 0 1 .708.708l-3 3a.5.5 0 0 1-.708 0l-1.5-1.5a.5.5 0 1 1 .708-.708L7.5 7.793z"/>
+                    </svg>
+                    </div>
+                    <h5 class="modal-title" id="otpModalLabel"  style="margin-left:22px;margin-right: 22px;margin-top: 22px;">Enter OTP Code</h5>
+                    <h6 style="font-size: small;margin-bottom: 22px;margin-left: 45px;">( Sent to Email )</h6>
+                    <form id="otpForm">
+                        <div class="input-field">
+                            <input class="otpInput" type="number" id="otp1" />
+                            <input class="otpInput" type="number" id="otp2" disabled />
+                            <input class="otpInput" type="number" id="otp3" disabled />
+                            <input class="otpInput" type="number" id="otp4" disabled />
+                        </div>
+                        <button type="button" class="btn btn-primary" id="verifyOTPBtn" disabled>Verify OTP</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <!-- Bootstrap JS and Popper.js -->
     <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
@@ -111,7 +132,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
     <!-- Include any additional JS files here -->
     <script>
-        function verifyEmail() {
+        async function verifyEmail(event) {
             event.preventDefault();
             var email = document.getElementById("formBasicEmail").value;
             console.log(email)
@@ -120,8 +141,9 @@
            
             EmailValidationMessage=emailIsValid(email)
             if ( EmailValidationMessage=="valid") {
-                document.getElementById("otp-container").style.display = "block";
+                
                 RemoveErrorMessage('formBasicEmail');
+                document.getElementById("formBasicEmail").value = email;
                 sendOTP();
             } else {
                 ShowErrorMessage('formBasicEmail',EmailValidationMessage);
@@ -130,20 +152,6 @@
 
             
         }
-
-        function RemoveErrorMessage(inputId) {
-            var errorMessageElement = document.getElementById(inputId + '-error');
-            if (errorMessageElement) {
-                errorMessageElement.remove();
-
-                // Remove 'error-input' class from the input element
-                var inputElement = document.getElementById(inputId);
-                inputElement.classList.remove('error-input');
-            }
-        }
-
-
-
         function emailIsValid(email){
 
             const emailRegex = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
@@ -158,6 +166,42 @@
 
             return "valid";
         }
+            // OTP VERSION
+        const otpForm = document.getElementById('otpForm');
+        const verifyOTPBtn = document.getElementById('verifyOTPBtn');
+
+        // Enable the Verify OTP button when all input fields have values
+        otpForm.addEventListener('input', () => {
+            const inputs = otpForm.querySelectorAll('input[type="number"]');
+            const isButtonDisabled = Array.from(inputs).some(input => input.value === '' || input.value === undefined);
+            verifyOTPBtn.disabled = isButtonDisabled;
+        });
+
+        // Handle the Verify OTP button click
+        // verifyOTPBtn.addEventListener('click', () => {
+        //     alert('OTP verified!'); // Replace this with your actual logic
+        //     $('#otpModal').modal('hide'); // Hide the Bootstrap modal
+        // });
+
+        
+
+        // ----------------------------------------------------------------------
+        
+
+        function RemoveErrorMessage(inputId) {
+            var errorMessageElement = document.getElementById(inputId + '-error');
+            if (errorMessageElement) {
+                errorMessageElement.remove();
+               
+                // Remove 'error-input' class from the input element
+                var inputElement = document.getElementById(inputId);
+                inputElement.classList.remove('error-input');
+            }
+        }
+
+
+
+       
 
         function handleSignup(event) {
             console.log("hi jesus");
@@ -168,12 +212,7 @@
 
             var emailVerifiedInput = document.getElementById('emailVerified');
 
-            // Check if the OTP container is visible and OTP is not entered
-            if (otpContainer.style.display === 'block' && otpInput.value.trim() === '') {
-                alert('Please enter the OTP.');
-                event.preventDefault(); // Prevent form submission
-                return false;
-            }
+            
             if (emailVerifiedInput.value !== 'true') {
                 alert('Email not verified. Please verify your email before submitting the form.');
                 event.preventDefault(); // Prevent form submission
@@ -198,12 +237,15 @@
 
             if (password1 !== password2) {
                 
-                document.getElementById('formBasicPassword').value = '';
+                
                 document.getElementById('formRepeatPassword').value = '';
                 document.getElementById('error').textContent = 'Passwords do not match!';
                 event.preventDefault();
                 return false; // Prevent form submission
             }
+            const email = document.getElementById('formBasicEmail');
+            
+            document.getElementById("formBasicEmail").value = email.value;
             event.target.submit();
             return true;
            
@@ -229,10 +271,11 @@
         }
 
         
-        function sendOTP() {
+        async function sendOTP() {
             event.preventDefault();
             const email = document.getElementById('formBasicEmail');
             const otpverify = document.getElementsByClassName('otpverify')[0];
+            const emailFormGroup = document.querySelector('.form-email');
 
             let otp_val =Math.floor(Math.random() * 9000) + 1000; 
             var emailVerifiedInput = document.getElementById('emailVerified');
@@ -248,17 +291,28 @@
 
             message => {
                 if (message === "OK") {
-                    alert("OTP sent to your email " + email.value);
-
-                    otpverify.style.display = "flex";
-                    const otp_inp = document.getElementById('otp_inp');
-                    const otp_btn = document.getElementById('otp-btn');
+                   
+                    $('#otpModal').modal('show');
+                    
+                    
+                    const otp_btn = document.getElementById('verifyOTPBtn');
 
                     otp_btn.addEventListener('click', () => {
-                        if (otp_inp.value == otp_val) {
+                        const otp1 = document.getElementById('otp1').value;
+                        const otp2 = document.getElementById('otp2').value;
+                        const otp3 = document.getElementById('otp3').value;
+                        const otp4 = document.getElementById('otp4').value;
+                        const enteredOTP = otp1 + otp2 + otp3 + otp4;
+                        if (enteredOTP == otp_val) {
                             alert("Email address verified...");
                             emailVerifiedInput.value = "true";
+                            console.log("is working")
+                            $('#otpModal').modal('hide'); // Close the modal
+                            // email.disabled = true; // Disable the email field
+                            email.readOnly = true;
+                            displayVerificationTick(emailFormGroup);
                             event.preventDefault();
+                            console.log(email.value)
                         }
                         else {
 
@@ -269,6 +323,20 @@
                 }
             }
             );
+        }
+        function displayVerificationTick(emailFormGroup) {
+            // Create an element for the verification tick
+            const tickElement = document.createElement('span');
+            tickElement.innerHTML = `
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-check-circle-fill" viewBox="0 0 16 16">
+                    <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0m-3.97-3.03a.75.75 0 0 0-1.08.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-.01-1.05z"/>
+                </svg>
+            `;
+            tickElement.style.color = 'green';
+            tickElement.style.marginLeft = '5px';
+            
+            // Append the tick element to the email form group
+            emailFormGroup.appendChild(tickElement);
         }
         function ShowErrorMessage(InputBoxID,Message){
             if(Message=='') return;
@@ -289,8 +357,58 @@
 
             InputBox.parentNode.insertBefore(ErrorMessageElement, InputBox.nextSibling);
 
+        }  
+        const inputs = document.querySelectorAll(".otpInput"),
+        button = document.querySelector("#verifyOTPBtn");
+
+
+        // iterate over all inputs
+        inputs.forEach((input, index1) => {
+        input.addEventListener("keyup", (e) => {
+        // This code gets the current input element and stores it in the currentInput variable
+        // This code gets the next sibling element of the current input element and stores it in the nextInput variable
+        // This code gets the previous sibling element of the current input element and stores it in the prevInput variable
+        const currentInput = input,
+            nextInput = input.nextElementSibling,
+            prevInput = input.previousElementSibling;
+
+        // if the value has more than one character then clear it
+        if (currentInput.value.length > 1) {
+            currentInput.value = "";
+            return;
         }
-        
+        // if the next input is disabled and the current value is not empty
+        //  enable the next input and focus on it
+        if (nextInput && nextInput.hasAttribute("disabled") && currentInput.value !== "") {
+            nextInput.removeAttribute("disabled");
+            nextInput.focus();
+        }
+
+        // if the backspace key is pressed
+        if (e.key === "Backspace") {
+            // iterate over all inputs again
+            inputs.forEach((input, index2) => {
+            // if the index1 of the current input is less than or equal to the index2 of the input in the outer loop
+            // and the previous element exists, set the disabled attribute on the input and focus on the previous element
+            if (index1 <= index2 && prevInput) {
+                input.setAttribute("disabled", true);
+                input.value = "";
+                prevInput.focus();
+            }
+            });
+        }
+        //if the fourth input( which index number is 3) is not empty and has not disable attribute then
+        //add active class if not then remove the active class.
+        if (!inputs[3].disabled && inputs[3].value !== "") {
+            button.classList.add("active");
+            return;
+        }
+        button.classList.remove("active");
+        });
+        });
+
+        //focus the first input which index is 0 on window load
+        window.addEventListener("load", () => inputs[0].focus());
     </script>
 </body>
 </html>

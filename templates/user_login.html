@@ -141,6 +141,19 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
     <!-- Include any additional JS files here -->
     <script>
+
+        document.addEventListener('DOMContentLoaded', function () {
+                if (window.location.hash === '#forgotPasswordModal') {
+                    // Trigger the forgotPasswordModal
+                    var forgotPasswordModal = new bootstrap.Modal(document.getElementById('forgotPasswordModal'));
+                    forgotPasswordModal.show();
+                }
+
+                // Optionally, you can remove the fragment identifier from the URL to avoid triggering the modal again on page refresh
+                if (window.location.hash) {
+                    window.history.replaceState({}, document.title, window.location.pathname + window.location.search);
+                }
+            });
         function verifyEmail() {
             event.preventDefault();
             var email = document.getElementById("inputEmail").value;
@@ -300,6 +313,8 @@
             }
             return "valid";
         }
+
+       
     </script>
     
 </body>

@@ -95,7 +95,7 @@
               </div>
               
               <button type="submit" class="btn">Login Now</button>
-              <p>Forget password? <a href="#">Click here</a></p>
+              <p>Forget password? <a href="user_login#forgotPasswordModal" id="forgotPasswordLink">Click here</a></p>
               <p>Don't have an account? <a href="user_register">Create one</a></p>
               <p>Not a User? <a href="manager_login">Manager</a></p>
           {% endif %}
@@ -124,7 +124,7 @@
             </div>
             <div class="form_group">
               <label for="email" class="form_group_label">Your Email*</label>
-              <input
+              <input id="name"
                 type="text"
                 class="form_input"
                 placeholder="Enter your email....." />
@@ -133,25 +133,27 @@
               <label for="company" class="form_group_label"
                 >Your Company*</label
               >
-              <input
+              <input id="company"
                 type="text"
                 class="form_input"
                 placeholder="Enter your company....." />
             </div>
             <div class="form_group">
               <label for="Subject" class="form_group_label">Your Subject</label>
-              <input
+              <input id="subject"
                 type="text"
                 class="form_input"
                 placeholder="Enter your subject....." />
             </div>
           </div>
-          <textarea
+          <textarea id="message"
             class="form_text"
             placeholder="please explain....."></textarea>
           <button class="form_btn" style="margin-left:400px">Send an Email</button>
         </div>
       </div>
+      <p style="color: green;padding-left: 330px;
+      padding-top: 40px;">🌿 Need assistance? Contact us at <strong>+91 9330674735</strong> between 11am to 11pm or at <strong>customerservice@organick.com</strong>. We're here to help!</p>
     </section>
     <section class="subscribe">
       <div class="container sub_container">
@@ -210,6 +212,41 @@
             $('#flashMessage').alert('close');
         }, 2000);
 
+        function sendContactForm() {
+  const name = document.getElementById('name').value;
+  const email = document.getElementById('email').value;
+  const company = document.getElementById('company').value;
+  const subject = document.getElementById('subject').value;
+  const message = document.getElementById('message').value;
+
+  // Validate form data (add your own validation logic here)
+
+  // Initialize Email.js
+  emailjs.init("user_your_emailjs_user_id");
+
+  // Set the email parameters
+  const params = {
+    to_email: "arijit.saha1373@gmail.com",  // Replace with your target email address
+    from_name: name,
+    from_email: email,
+    company: company,
+    subject: subject,
+    message: message,
+  };
+
+  // Send the email
+  emailjs.send("service_your_emailjs_service_id", "template_your_emailjs_template_id", params)
+    .then(
+      function(response) {
+        console.log("Email sent successfully:", response);
+        showMessageBox('Email sent successfully!');
+      },
+      function(error) {
+        console.error("Error sending email:", error);
+        showMessageBox('Failed to send email. Please try again later.');
+      }
+    );
+}    
 
     
   </script>

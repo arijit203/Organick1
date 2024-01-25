@@ -247,7 +247,7 @@ class LoginForm(FlaskForm):
 class UserForm(FlaskForm):
     username=StringField("Username",validators=[DataRequired()])
     name=StringField("Name",validators=[DataRequired()])
-    email=StringField("Email",validators=[DataRequired(),Email()])
+    email=StringField("Email",validators=[DataRequired()])
     password_hash=PasswordField('Password',validators=[DataRequired()])
     password_hash2=PasswordField('Confirm Password',validators=[DataRequired()])
     submit=SubmitField("Sign Up")
@@ -289,15 +289,17 @@ def reset_password():
 def add_user():
     name = None
     form = UserForm()
-
+    
     if form.validate_on_submit():
+        print(form.email.data,"** $$")
+        print("Hi there but there")
         existing_user = Users.query.filter_by(username=form.username.data).first()
         if existing_user:
             flash("Username is already taken. Please choose a different username.")
             return render_template("user_register.html", name=name, form=form)
         
         user = Users.query.filter_by(email=form.email.data).first()
-
+        print("Hi there Bye there")
         if user is None:
             # hash the password!!!
             hashed_pw = generate_password_hash(form.password_hash.data)
@@ -306,11 +308,17 @@ def add_user():
             
             db.session.add(user)
             db.session.commit()
+            flash("Registration Complete!")
+            print("Commited")
             login_user(user)
             return redirect(url_for('shop',username=form.username.data))
         else:
+            print("already commited")
             flash("Email is already registered. Please use a different email.")
             return render_template("user_register.html", username=form.username.data, form=form, our_users=existing_user,name=name)
+    
+    if form.errors:
+        print("Form errors:", form.errors)    
     username = form.username.data
     form.username.data = ''
     form.name.data = ''
@@ -594,51 +602,6 @@ def decrease_quantity(item_id):
     else:
         return jsonify({"success": False, "message": "Item not found in the cart"}), 404
     
-
-
-
-# @app.route('/save_address', methods=['POST'])
-# def save_address():
-#     edit_mode = request.form.get('edit_mode', 'false').lower() == 'true'
-
-#     if edit_mode:
-#         # This is an edit operation
-#         address_id = request.form.get('address_id')
-#         # Handle updating the existing address with ID address_id
-
-#         # url_for('edit_address', address_id=address_id)
-#         flash("Address updated successfully")
-#     else:
-#         form = AddressForm()
-
-#         if form.validate_on_submit():
-#             # Create a new user address instance
-#             new_user_address = User_address(
-#                 user_id=current_user.id,  # Assuming user_id is associated with the current user
-#                 title=form.title.data,
-#                 receiver_name=form.receiver_name.data,
-#                 delivery_address=form.delivery_address.data,
-#                 address_type=form.save_address_as.data
-#             )
-
-#             # Add the user address to the database
-#             db.session.add(new_user_address)
-#             db.session.commit()
-#             flash("Address added, now Proceed to Payment")
-           
-
-#             addresses = User_address.query.filter_by(user_id=current_user.id).all()
-#             cart_items = db.session.query(Cart, Order_items, Category) \
-#                 .join(Order_items, Cart.item_id == Order_items.id) \
-#                 .join(Category, Order_items.category_id == Category.category_id) \
-#                 .filter(Cart.user_id == current_user.id) \
-#                 .all()
-
-#             return render_template("cart.html", username=current_user.username, cart_items=cart_items, addresses=addresses, form=form)
-#         else:
-#             # Handle form validation errors
-#             flash('Form validation error. Please check your input.', 'error')
-#         return redirect(url_for('cart'))
     
 
 @app.route('/save_address', methods=['GET','POST'])
@@ -1225,7 +1188,7 @@ class Order_items(db.Model):
 
 class CreateItemForm(FlaskForm):
     product_name = StringField('Product Name :', validators=[DataRequired()])
-    unit = SelectField('Unit :', choices=[('Rs/kg', 'Rs/kg'), ('Rs/L', 'Rs/L'), ('Rs/dozen', 'Rs/dozen'), ('Rs/500 gram', 'Rs/500 gram'),('Rs/unit','Rs/unit')], validators=[DataRequired()])
+    unit = SelectField('Unit :', choices=[('Rs/kg', 'Rs/kg'), ('Rs/L', 'Rs/L'), ('Rs/dozen', 'Rs/dozen'), ('Rs/500 gram', 'Rs/500 gram'),('Rs/unit','Rs/unit'),('Rs/500 ml','Rs/500 ml')], validators=[DataRequired()])
     rate_per_unit = FloatField('Rate/Unit :', validators=[DataRequired()])
     quantity = IntegerField('Quantity :', validators=[DataRequired(), NumberRange(min=0)])
     save_button = SubmitField('Save')
