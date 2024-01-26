@@ -430,8 +430,9 @@ def add_to_cart():
     item_id = request.form.get('item_id')
     category_id = request.form.get('category_id')
     quantity = request.form.get('quantity')  
+    print(quantity)
     if quantity=='':
-        return jsonify({'Item could be added!'})
+        return jsonify({'Item could not be added!'})
     
     quantity=int(quantity)
 
@@ -455,7 +456,37 @@ def add_to_cart():
         db.session.commit()
         # Return a JSON response indicating success
         return jsonify({'success': 'Item added to your cart'}), 200
-    
+
+@app.route('/get_cart_content', methods=['GET'])
+@login_required
+def get_cart_content():
+    # Get the current user's cart
+    user_cart = Cart.query.filter_by(user_id=current_user.id).first()
+
+    if user_cart:
+        # Get the cart items
+        cart_items = Cart.query.filter_by(user_id=current_user.id).all()
+
+        # Fetch detailed product information for each item in the cart
+        cart_content = []
+        for cart_item in cart_items:
+            product_info = Order_items.query.filter_by(id=cart_item.item_id).first()
+            if product_info:
+                cart_content.append({
+                    'item_id': cart_item.item_id,
+                    'name': product_info.name,
+                    'price': product_info.price,
+                    'quantity': cart_item.quantity,
+                    'category_id': product_info.category_id,
+                    'unit': product_info.unit,
+                    # Add more fields as needed
+                })
+       
+        return jsonify(cart_content)
+    else:
+        # No cart for the user
+        return jsonify([])
+
 
 @app.route('/fetch_items', methods=['GET'])
 def fetch_items():
@@ -490,43 +521,59 @@ def get_items_from_database(search_term, category_id):
 
     return items
 
-@app.route("/delete_from_cart/<int:item_id>",methods=['GET','POST'])
-def delete_from_cart(item_id):
+# @app.route("/delete_from_cart/<int:item_id>",methods=['GET','POST'])
+# def delete_from_cart(item_id):
+#     cart_item = Cart.query.filter_by(username=current_user.username, item_id=item_id).first()
+
+#     if cart_item:
+#         try:
+#             # Update the Order_items table and add the quantity back
+#             # item = Order_items.query.get_or_404(item_id)
+#             # item.quantity += cart_item.quantity
+
+            
+#             db.session.delete(cart_item)
+#             db.session.commit()
+
+#             flash("Item deleted from the cart.", "success")
+#         except:
+#             flash("Error occurred while deleting the item from the cart. Please try again later.", "danger")
+#     else:
+#         flash("Item not found in the cart.", "danger")
+#     categories = Category.query.all()
+#     cart_items = db.session.query(Cart, Order_items, Category)\
+#         .join(Order_items, Cart.item_id == Order_items.id)\
+#         .join(Category, Order_items.category_id == Category.category_id)\
+#         .filter(Cart.user_id == current_user.id)\
+#         .all()
+#     total_price = 0
+#     for cart_item, item, category in cart_items:
+#         total_price += item.price * cart_item.quantity
+#     category_items_dict = {}
+#     for category in categories:
+#         items = Order_items.query.filter_by(category_id=category.category_id).all()
+#         category_items_dict[category.category_id] = items    
+#     # return redirect(url_for('shop', username=username))
+#     form=UserForm()
+#     cartform=CartForm()    
+#     return redirect(url_for('shop',categories=categories , cart_items=cart_items,category_items_dict=category_items_dict,username=current_user.username, email=current_user.email,form=form,cartform=cartform,total_price=total_price))
+ 
+@app.route("/delete_from_cart/<int:item_id>", methods=['POST'])
+def delete_from_cart_ajax(item_id):
     cart_item = Cart.query.filter_by(username=current_user.username, item_id=item_id).first()
 
     if cart_item:
         try:
-            # Update the Order_items table and add the quantity back
-            # item = Order_items.query.get_or_404(item_id)
-            # item.quantity += cart_item.quantity
-
-            
+            print(cart_item)
             db.session.delete(cart_item)
             db.session.commit()
 
-            flash("Item deleted from the cart.", "success")
-        except:
-            flash("Error occurred while deleting the item from the cart. Please try again later.", "danger")
+            return jsonify({'success': True, 'message': 'Item deleted from the cart.'})
+        except Exception as e:
+            return jsonify({'success': False, 'message': str(e)})
     else:
-        flash("Item not found in the cart.", "danger")
-    categories = Category.query.all()
-    cart_items = db.session.query(Cart, Order_items, Category)\
-        .join(Order_items, Cart.item_id == Order_items.id)\
-        .join(Category, Order_items.category_id == Category.category_id)\
-        .filter(Cart.user_id == current_user.id)\
-        .all()
-    total_price = 0
-    for cart_item, item, category in cart_items:
-        total_price += item.price * cart_item.quantity
-    category_items_dict = {}
-    for category in categories:
-        items = Order_items.query.filter_by(category_id=category.category_id).all()
-        category_items_dict[category.category_id] = items    
-    # return redirect(url_for('shop', username=username))
-    form=UserForm()
-    cartform=CartForm()    
-    return redirect(url_for('shop',categories=categories , cart_items=cart_items,category_items_dict=category_items_dict,username=current_user.username, email=current_user.email,form=form,cartform=cartform,total_price=total_price))
- 
+        return jsonify({'success': False, 'message': 'Item not found in the cart.'})
+
 # Save address respective to a particular User
 class User_address(db.Model):
     id = db.Column(db.Integer, primary_key=True)

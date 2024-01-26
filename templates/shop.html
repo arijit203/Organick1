@@ -3,16 +3,25 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+
     <title>Shop &mdash; Grocery Website</title>
     <!-- Link Swiper's CSS -->
-    
+    <!-- <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">  -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <link rel="stylesheet" href="static/css/styles.css" />
     <style>.scrolled {
       box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Add a box shadow when scrolled */
       /* Add any other styles you want for the scrolled state */
-  }</style>
+  }
+
+.search-results-styling {
+    display: flex;
+    flex-wrap: wrap;
+    padding: 20px;
+}
+  </style>
   <script src="https://cdn.emailjs.com/dist/email.min.js"></script>
     <!-- <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">   -->
   </head>
@@ -52,7 +61,7 @@
           </div>
           <form action="" class="search-form" id="search-form" style="position: fixed;
           margin-top: 15px;">
-            <input type="search" placeholder="Search Here..." id="search-box"></input>
+            <input  placeholder="Search Here..." id="search-box"></input>
             <label for="search-box" class="fas fa-search"></label>
           </form>
         </div>
@@ -61,8 +70,8 @@
           {% if current_user.is_authenticated %}
               {% if cart_items %}
                   {% for cart_item,item,category in cart_items %}
-                      <div class="box">
-                        <a href="/delete_from_cart/{{ cart_item.item_id }}">
+                      <div class="box" data-item-id="{{ cart_item.item_id }}">
+                        <a href="#" class="delete-from-cart">
                           <i class="fas fa-times"></i>
                         </a>
                         
@@ -76,7 +85,7 @@
                       </div>
                   {% endfor %}
                   <h3 class="total">Total: <span>₹{{ total_price }}</span></h3>
-                  <a href="/cart" class="btn">Checkout Cart</a>
+                  <a href="/cart" class="btn" style="font-size: 1.5rem;">Checkout Cart</a>
               {% else %}
                   <p>Your cart is empty.</p>
               {% endif %}
@@ -174,11 +183,13 @@
               {% for category in categories %}
                   <div class="category_row">
                       <h2 class="category_header" style="font-size: larger;">{{ category.category_name }}</h2>
-                      <div class="selection-header">
+                      <div class="selection-header" >
                       {% for item in category_items_dict[category.category_id] %}
                           <div class="product_card">
                               <div class="product_body">
-                                  <img src="static/images/items/{{ item.name|replace(' ', '_')|lower }}.png" alt="{{ item.name }}" class="product_img" />
+                                <img src="static/images/items/{{ item.name|replace(' ', '_')|lower }}.png" alt="{{ item.name }}" class="product_img"
+                                
+                            />
                                   <h3 class="product_title">{{ item.name }}</h3>
                                   <div class="product_footer">
                                       <h4 class="product_price" style="font-size: small;">Rs. {{ item.price }} per {{ item.unit[item.unit.find("/")+1:] }}</h4>
@@ -219,7 +230,46 @@
           </div>
       </div>
   </section>
-  
+  <!-- <div class="modal fade" id="moreInfoModal" tabindex="-1" aria-labelledby="moreInfoModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content custom-modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="moreInfoModalLabel" style="
+                font-size: 17px;
+                padding: 15px 12px;">Product Information</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <section class="single" style="margin-top:8px">
+                <div class="container single_container">
+                    <div class="single_content">
+                        <img src="" class="card-img-top restricted-image" alt="" id="modalItemImage">
+                    </div>
+                    
+                    <div class="single_content">
+                        <h4  id="modalItemName"></h4>
+                        <div class="single_stars">
+                            <img src="static/images/icon/star.png" alt="" class="star">
+                            <img src="static/images/icon/star.png" alt="" class="star">
+                            <img src="static/images/icon/star.png" alt="" class="star">
+                            <img src="static/images/icon/star.png" alt="" class="star">
+                            <img src="static/images/icon/star.png" alt="" class="star">
+                        </div>
+                        <h4 class="single_price modal-text" id="modalItemPrice"></h4>
+                        <p class="single_p">Lorem ipsum dolor sit amet consectetur adipisicing elit. Quasi quae ad magnam numquam, aliquid recusandae, nihil perferendis cum voluptatibus molestias quo laboriosam illo commodi at veniam repellendus dicta possimus inventore!</p>
+                        
+                    </div>
+                    
+                </div>
+            </section>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" style="font-size: 1.5rem;
+                width: 25%;">Close</button>
+                <!-- Add any other buttons you need in the modal footer -->
+            <!-- </div>
+        </div>
+    </div>      
+</div> --> -->
+
   
     <section class="subscribe">
       <div class="container sub_container">
@@ -255,6 +305,73 @@
     });
     
     $(document).ready(function () {
+      $('.shopping-cart').on('click', '.delete-from-cart', function (e) {
+        
+        e.preventDefault();
+
+        // Get the item id from the data attribute
+        var itemId = $(this).closest('.box').data('item-id');
+        
+        var csrfToken = $('meta[name=csrf-token]').attr('content');
+
+        // Include CSRF token in AJAX request headers
+        $.ajax({
+            type: 'POST',
+            url: '/delete_from_cart/' + itemId,
+            data: {csrf_token: csrfToken},  // Include CSRF token in the data
+            success: function (response) {
+                
+                // Update the cart content on the page
+                updateCartContent();
+            },
+            error: function (xhr, status, error) {
+                console.error('AJAX error:', status, error);
+                console.log(xhr.responseText); // Log the response text for more details
+            }
+        });
+    });
+
+    function updateCartContent() {
+        // Use AJAX to fetch the updated cart content from the server
+        $.ajax({
+            type: 'GET',
+            url: '/get_cart_content',
+            success: function (cartContent) {
+                // Update the cart section in your HTML with the new content
+                $('.shopping-cart').empty();
+                if (cartContent.length === 0) {
+                  $('.shopping-cart').append('<p>Your cart is empty.</p>');
+            } else {
+                // Iterate through the cart items and append them to the cart section
+                for (var i = 0; i < cartContent.length; i++) {
+                    var cartItem = cartContent[i];
+                    console.log("Hi deleted:", cartItem.item_id);
+                    var cartItemHtml = '<div class="box" data-item-id="' + cartItem.item_id + '">' +
+                        '<a href="#" class="delete-from-cart">' +
+                        '<i class="fas fa-times"></i>' +
+                        '</a>' +
+                        '<img class="imi" src="static/images/items/' + cartItem.name.replace(/\s+/g, '_').toLowerCase() + '.png" alt="' + cartItem.name + '">' +
+                        '<div class="content">' +
+                        '<h3>' + cartItem.name + '</h3>' +
+                        '<span class="quantity">' + cartItem.quantity + '</span>' +
+                        '<span class="multiply">x</span>' +
+                        '<span class="price">₹' + cartItem.price + '</span>' +
+                        '</div>' +
+                        '</div>';
+                    
+                    $('.shopping-cart').append(cartItemHtml);
+                }
+
+                // Add total price and checkout button (modify as needed)
+                $('.shopping-cart').append('<h3 class="total">Total: <span>₹' + getTotalPrice(cartContent) + '</span></h3>');
+                $('.shopping-cart').append('<a href="/cart" class="btn">Checkout Cart</a>');
+              }
+            },
+            error: function (jqXHR, textStatus, errorThrown) {
+                console.error('Error fetching cart content:', textStatus, errorThrown);
+            }
+        });
+    }
       function showMessageBox(message) {
                 var messageBox = $('<div>', {
                     class: 'alert alert-dark',
@@ -297,10 +414,8 @@
                     $('.quantity_box').val('');
                     // Show a success message using your custom function
                     showMessageBox(response.success, true);
-                    scrollPosition = window.scrollY;
-                    setTimeout(function () {
-                    location.reload();
-                }, 2000);
+                    updateCartContent();
+
                 } else {
                     // Show an error message using your custom function
                     $('.quantity_box').val('');
@@ -319,22 +434,25 @@
             }, 1500);
         } else {
             // Show a generic error message for other types of errors
-            showMessageBox("Please Sign in to Add Item to Cart", false);
-            setTimeout(function () {
-                window.location.href = '/user_login';
-            }, 2000);
+            showMessageBox("Please enter Quantity of Item", false);
+            
         }
         console.error('AJAX error:', textStatus, errorThrown);
     }
         });
     });
-    window.onload = function () {
-        if (scrollPosition !== undefined) {
-            window.scrollTo(0, scrollPosition);
-        }
-    };
+   
    
     })
+    
+    // Helper function to calculate total price
+function getTotalPrice(cartContent) {
+    var total = 0;
+    for (var i = 0; i < cartContent.length; i++) {
+        total += cartContent[i].price * cartContent[i].quantity;
+    }
+    return total.toFixed(2);
+}
     setTimeout(function() {
       $('#flashMessage').alert('close');
     }, 2000);
@@ -350,41 +468,39 @@
         };
     });
 
-    // Hide all categories initially
-    
+ 
+$('#search-box').on('keydown', function(event) {
+    // Check if the pressed key is Enter (key code 13)
+    if (event.which === 13) {
+        // Trigger the search functionality
+        event.preventDefault();
+        performSearch();
+    }
+});
 
-    // $('#search-form').on('input', function() {
-    //     var searchTerm = $('#search-box').val().toLowerCase();
-        
-    //     // Hide all categories and product cards initially
-    //     $('.category_row, .product_card').hide();
+// Add an event listener for click event on the search icon
+$('#search-form label').on('click', function() {
+    // Trigger the search functionality
+    performSearch();
+});
 
-    //     // Show matching categories based on category name
-    //     $('.category_row:contains("' + searchTerm + '")').each(function() {
-    //         var category = $(this);
-    //         category.show();
-
-    //         // Show all product cards within the category
-    //         category.find('.product_card').show();
-
-    //         // Show matching product cards within the category based on item name
-    //         category.find('.product_card:contains("' + searchTerm + '")').show();
-    //     });
-
-    //     updateStylesAfterFiltering();
-    //     if (searchTerm === '') {
-    //         clearStylesAfterFiltering();
-    //     }
-    // });
-
-    // Add a handler to clear styles when search box is cleared
-
-    $('#search-box').on('input', function() {
-    var searchTerm = $(this).val().toLowerCase();
-
+// Function to perform the search
+function performSearch() {
+    var searchTerm = $('#search-box').val().toLowerCase();
+    var Container = $('.selection-header');
+    Container.css({
+        'display': 'flex',
+        'flex-wrap': 'wrap',
+        'padding': '20px'
+    });
+    var product_card=$('.product_card');
+    product_card.css({
+      
+        'margin-left':'6px'
+    });
     // Send an AJAX request to the server to perform the search
     $.ajax({
-        type: 'POST',
+        type: 'GET',
         url: '/search_items',
         data: { search_term: searchTerm },
         success: function(response) {
@@ -417,29 +533,14 @@
 
         // Show all product cards within the category
         category.find('.product_card').show();
-
-        // Show matching product cards within the category based on item name
-        category.find('.product_card:contains("' + searchTerm + '")').show();
     });
 
-    updateStylesAfterFiltering();
+    
     if (searchTerm === '') {
         clearStylesAfterFiltering();
     }
-});
-
-    
-});
-
-function updateStylesAfterFiltering() {
-    // Get all elements with the selection-header class
-    var selectionHeaders = document.getElementsByClassName('selection-header');
-
-    // Apply styles or add/remove classes to each instance
-    for (var i = 0; i < selectionHeaders.length; i++) {
-        selectionHeaders[i].style.display = 'flex';
-    }
 }
+
 
 function clearStylesAfterFiltering() {
     // Get all elements with the selection-header class
@@ -450,6 +551,9 @@ function clearStylesAfterFiltering() {
         selectionHeaders[i].style.display = 'grid';
     }
 }
+
+
+    });
 emailjs.init("arijit.saha1373@gmail.com"); // Replace with your Email.js user ID
 
     function subscribe() {
