@@ -987,6 +987,9 @@ def send_order_details_email(email_receiver, order_id):
         for item in items:
             MRP+=item.quantity*item.price
             items_str+=item.item_name+", "
+        items_str= items_str[:-1]
+        
+        
         order_info = {
             'order_id': order.order_id,
             'total_price': order.total_price,
@@ -1005,11 +1008,12 @@ def send_order_details_email(email_receiver, order_id):
 
         # Calculate the length of the items list
         items_length = len(order_info['items'])
+        no_of_items = 'item' if items_length == 1 else 'items'
 
         
 
         with app.app_context():
-            rendered_html = render_template('send-email.html', order_info=order_info, items_length=items_length)
+            rendered_html = render_template('send-email.html', order_info=order_info, items_length=items_length,no_of_items=no_of_items)
         em = EmailMessage()
         em['From'] = 'organick.groc@gmail.com'  # Update with your email address
         em['To'] = email_receiver

@@ -254,7 +254,7 @@
                             <div class="t0">
                                 <div>
                                     <div class="t1" style="margin-top: 20px;
-                                    color: black;">{{items_length}} items from Organick Instamart</div>
+                                    color: black;">{{items_length}} {{no_of_items}} from Organick Instamart</div>
                                     <div class="t2">₹{{order_info['total_price']}}</div>
                                 </div>
                                 <div class="amE"></div>
@@ -287,7 +287,7 @@
                                 	
  
                                 Greetings from Organick👋
-                                Your Organick Instamart order id: {{order_info['order_id']}} was successfully delivered.
+                                Your Organick Instamart order #ORD{{order_info['order_id']}} was successfully delivered.
                             </div>
                             <br>
                             <div class="list">
@@ -301,7 +301,7 @@
                                                 <div >
                                                     <div style="
                                                     font-weight: 300;font-size: larger;color: black;">
-                                                        <span id="total_no_items">{{ items_length }} items in this Order<span> 
+                                                        <span id="total_no_items">{{ items_length }} {{no_of_items}} in this Order<span> 
                                                             
                                                     </div>
 
@@ -348,7 +348,7 @@
                                                     </tr>
                                                     <tr >
                                                         <td style="padding: 12px;" ><div style="font-size: medium;">Product Discount (<span id="discountCode">{{order_info['discountCode']}}</span>)</div></td>
-                                                        <td style="padding: 12px;"><div style="font-size: medium;">-₹ {{order_info['discountValue']}}.00</div></td>
+                                                        <td style="padding: 12px;"><div style="font-size: medium;">-₹ {{order_info['discountValue']}}</div></td>
                                                     </tr>
                                                     <tr >
                                                         <td  style="padding: 12px;font-size: medium;" >Delivery Charges</td>
