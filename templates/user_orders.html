@@ -331,8 +331,10 @@
                         data.formatted_order_date
                     )
                     $('#total_no_items').html(
-                        data.items.length +" items in this order"
-                    )
+                        (data.items.length == 1) ?
+                        data.items.length + " item in this order" :
+                        data.items.length + " items in this order"
+                    );
                     var itemsContainer = $('#itemsContainer');
 
                     // Clear any existing content

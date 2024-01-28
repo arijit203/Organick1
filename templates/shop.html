@@ -427,11 +427,15 @@
             error: function (jqXHR, textStatus, errorThrown) {
         if (jqXHR.responseJSON && jqXHR.responseJSON.error) {
             // Show the error message received from the server
+            // console.log("**",jqXHR.responseJSON.error)
             $('.quantity_box').val('');
             showMessageBox(jqXHR.responseJSON.error, false);
-            setTimeout(function () {
+            if(jqXHR.responseJSON.error=="User not authenticated"){
+                setTimeout(function () {
                 window.location.href = '/user_login';
             }, 1500);
+            }
+            
         } else {
             // Show a generic error message for other types of errors
             showMessageBox("Please enter Quantity of Item", false);

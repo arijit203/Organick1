@@ -16,6 +16,15 @@ from datetime import datetime
 from pytz import timezone
 from sqlalchemy import asc,desc
 indian_timezone = timezone('Asia/Kolkata')
+from email.message import EmailMessage
+import ssl
+import smtplib
+from jinja2 import Environment, FileSystemLoader
+from email.message import EmailMessage
+import smtplib
+from flask import Flask, render_template_string,render_template
+
+
 
 
 from werkzeug.security import generate_password_hash,check_password_hash
@@ -421,6 +430,32 @@ class BuyForm(FlaskForm):
     quantity = IntegerField('Quantity', validators=[DataRequired(), NumberRange(min=1)])
     
 
+@app.route('/check_availability', methods=['GET'])
+def check_availability():
+   
+    cart_items = Cart.query.filter_by(user_id=current_user.id).all()
+    all_available = "True"
+
+    for cart_item in cart_items:
+        item_id = cart_item.item_id
+        quantity = cart_item.quantity
+
+        # Retrieve the item from the database
+        item = Order_items.query.get(item_id)
+
+        if item is not None:
+            # Check if the available quantity is sufficient
+            if item.quantity < quantity:
+                all_available = str(quantity) + item.unit.split('/')[1] + " not available in Store. Only up to " + str(item.quantity) + item.unit.split('/')[1] + " available"                
+                break
+        else:
+            # Item not found in the database
+            all_available = "Item removed from database"
+            break
+
+    return jsonify({'allAvailable': all_available})
+
+
 @app.route('/add_to_cart', methods=['POST'])
 def add_to_cart():
     if not current_user.is_authenticated:
@@ -796,24 +831,7 @@ def checkout(address_id):
     num_items_in_cart = len(cart_items)
     for cart_item, item, category in cart_items:
         total_price += item.price * cart_item.quantity
-    # if request.method == 'POST':
-    #     promo_code = request.form.get('promo_code')
-
-    #     if promo_code:
-    #         discount = Discount.query.filter_by(code=promo_code).first()
-
-    #         if discount:
-    #             # Apply the discount to the total amount
-    #             if total_price-discount.amount>=50:
-    #                 print(discount.amount)
-    #                 total_price -= discount.amount
-    #                 # flash(f'Discount of {discount.amount} applied successfully!', 'success')
-    #             else:
-    #                 return jsonify({"success": False, "message": "Minumum Amt of Purchase should be ₹150"})
-
-    #         else:
-    #             flash('Invalid promo code. Please try again.', 'error')
-
+    
     
     return render_template('checkout.html',address=address,cart_items=cart_items,num=num_items_in_cart,total_price=total_price, form=payment_form)
 
@@ -831,9 +849,9 @@ class Discount(db.Model):
 @app.route('/get_discount/<string:promo_code>/<string:totalAmount>' ,methods=['GET'])
 def get_discount(promo_code,totalAmount):
     discount = Discount.query.filter_by(code=promo_code).first()
-    print("***********")
+    
     if discount and discount.amount > 0:
-        if int(totalAmount) - discount.amount >= 50:
+        if int(totalAmount) >= 150:
             return jsonify({'success': True, 'amount': discount.amount})
         else:
             return jsonify({'success': False, 'message': "Minimum Amount of Purchase to avail this discount should be ₹150"})
@@ -895,7 +913,7 @@ def placed_order():
     
     try:
         # Retrieve form data
-        print("Hi hui byei ")
+       
         payment_method = request.form.get('mode_of_payment')
         total_amount = int(request.form.get('totalAmount'))
         address_id = int(request.form.get('addressId'))
@@ -906,7 +924,7 @@ def placed_order():
         new_order = Placed_orders(user_id=current_user.id, order_date=datetime.now(indian_timezone), total_price=total_amount, mode_of_payment=payment_method, address=address.delivery_address,promoCode=promoCode)
         db.session.add(new_order)
         db.session.commit()
-        print("*****")
+        
         # Step 2: Retrieve Cart Items
         cart_items = Cart.query.filter_by(user_id=current_user.id).all()
         # Update the Order_items table and subtract the ordered quantity
@@ -921,13 +939,20 @@ def placed_order():
                 quantity=cart_item.quantity,
                 price=item.price
             )
-            print(user_buyer)
+           
             db.session.add(user_buyer)
             db.session.commit()
 
             item.quantity -= cart_item.quantity
             db.session.delete(cart_item)
             db.session.commit()
+
+            order_id = new_order.order_id
+            user_email=Users.query.filter_by(id=current_user.id).first().email
+
+        send_order_details_email(user_email,order_id)
+        print("User EMail:", user_email)    
+        # send_order_details_email(user_email,order_id)
         flash("Order Placed Successfully! Arriving in 20mins")
         # Redirect to the shop.html page upon successful order placement
         return redirect(url_for('shop'))
@@ -937,6 +962,71 @@ def placed_order():
         print(e)
         # Redirect to an error page or display an error message
         return redirect(url_for('error_page'))
+    
+
+
+def send_order_details_email(email_receiver, order_id):
+    print("Entered")
+    try:
+        subject = "Your Organick Order ORD" +str(order_id)  +" was successfully delivered!"
+        order = Placed_orders.query.get(order_id)
+
+        # Fetch items for the order
+        items = User_buy.query.filter_by(order_id=order_id).all()
+        
+        # Convert data to JSON
+        MRP=0
+        discountCode=order.promoCode
+        print(discountCode)
+        if len(discountCode)!=0:
+            discountValue=Discount.query.filter_by(code=discountCode).first().amount
+        else:
+            discountValue=' - '    
+        print(order)
+        items_str=""
+        for item in items:
+            MRP+=item.quantity*item.price
+            items_str+=item.item_name+", "
+        order_info = {
+            'order_id': order.order_id,
+            'total_price': order.total_price,
+            'MRP':MRP,
+            'paymentMode':order.mode_of_payment,
+            'Address':order.address,
+            'discountCode':discountCode,
+            'discountValue':discountValue,
+            'formatted_order_date': order.order_date.strftime("%A, %d %b'%y, %I:%M%p"),
+            'items_str': items_str,
+            'items': [{'item_name': item.item_name, 'item_price': item.price,'item_quantity':item.quantity} for item in items],
+        }
+
+
+        
+
+        # Calculate the length of the items list
+        items_length = len(order_info['items'])
+
+        
+
+        with app.app_context():
+            rendered_html = render_template('send-email.html', order_info=order_info, items_length=items_length)
+        em = EmailMessage()
+        em['From'] = 'organick.groc@gmail.com'  # Update with your email address
+        em['To'] = email_receiver
+        em['Subject'] = subject
+        em.set_content(rendered_html, subtype='html')
+
+        with smtplib.SMTP('smtp.gmail.com', 587) as smtp:
+            smtp.starttls()  # Start TLS encryption
+            smtp.login('organick.groc@gmail.com', 'xkfk iglo sddh zabh')  # Update with your email and password
+            smtp.sendmail('organick.groc@gmail.com', email_receiver, em.as_string())
+
+    except Exception as e:
+        # Print error details
+        print(f"An error occurred: {e}")
+       
+
+
 
 @app.route('/error_page',methods=['GET'])
 def error_page():
@@ -1276,7 +1366,7 @@ class EditItemForm(FlaskForm):
     name = StringField('Item Name', validators=[DataRequired()])
     price = FloatField('Price', validators=[DataRequired()])
     quantity = IntegerField('Quantity', validators=[DataRequired()])
-    unit = SelectField('Unit :', choices=[('Rs/kg', 'Rs/kg'), ('Rs/L', 'Rs/L'), ('Rs/dozen', 'Rs/dozen'), ('Rs/500 gram', 'Rs/500 gram'),('Rs/unit','Rs/unit')], validators=[DataRequired()])
+    unit = SelectField('Unit :', choices=[('Rs/kg', 'Rs/kg'), ('Rs/L', 'Rs/L'), ('Rs/dozen', 'Rs/dozen'), ('Rs/500 gram', 'Rs/500 gram'),('Rs/unit','Rs/unit'),('Rs/500ml','Rs/500ml')], validators=[DataRequired()])
     category_id = IntegerField('Category ID', validators=[DataRequired()])
 
 @app.route("/<name>/edit_item/<int:item_id>", methods=["GET", "POST"])

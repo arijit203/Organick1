@@ -163,7 +163,7 @@
                             </div>
                             <div class="text-center mt-3">
                                 <p>Total Amount: <span id="totalAmount">0</span></p>
-                                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addressModal" style="height: 5rem;
+                                <button type="button" class="btn btn-primary" id="proceedToCheckoutBtn" style="height: 5rem;
                                 font-size: 1.3rem;">
                                     Proceed to Checkout
                                 </button>
@@ -385,6 +385,32 @@
     });
     
         $(document).ready(function () {
+
+            $('#proceedToCheckoutBtn').click(function() {
+        // Make an Ajax request to check item availability
+        $.ajax({
+            type: 'GET',
+            url: '/check_availability',
+             // Provide your cart items data
+            success: function(response) {
+                if (response.allAvailable=='True') {
+                    // If all items are available, show the modal
+                   
+                    $('#addressModal').modal('show');
+                   
+                } else {
+                    // If not all items are available, handle it (e.g., show a message)
+                    showMessageBox(response.allAvailable)
+                     // Disable the button
+                   
+                }
+            },
+            error: function() {
+                // Handle the error
+                alert('Error checking item availability.');
+            }
+        });
+    });
             $('.more-info-btn').on('click', function () {
                 var itemName = $(this).data('item-name');
                 var itemQuantity = $(this).data('item-quantity');
@@ -525,13 +551,7 @@
             updateTotalAmount();
 
 
-            $('#proceedToCheckoutBtn').on('click', function () {
-            // You can add additional logic here if needed before showing the address modal
-            // For example, update the content of the modal based on user's data
-
-            // Show the address modal
-                 $('#addressModal').modal('show');
-            });
+           
 
            
         });
@@ -745,10 +765,7 @@ function initMap() {
            
                 // Redirect to the cart page
             showMessageBox("Address is Updated!");
-            setTimeout(function () {
-                showMessageBox("Address is Updated!");
-                window.location.href ='\cart';
-            }, 4000);
+            
             
             
 
@@ -756,6 +773,7 @@ function initMap() {
             document.getElementById('submitBtn').innerText = 'Save Address';
             document.querySelector('form').action = '/save_address';
             showMessageBox("Address is Updated!");
+            $('#addressModal').modal('show');
         })
         .catch(error => console.error('Error Catched:', error));
 }
@@ -776,6 +794,7 @@ function deleteAddress(addressId) {
                 setTimeout(function () {
                     location.reload();
                 }, 2000);
+                $('#addressModal').modal('show');
             } else {
                 showMessageBox('Error deleting address: ' + data.message);
             }
@@ -845,7 +864,35 @@ setTimeout(function() {
             $('#flashMessage').alert('close');
         }, 2000);
 
+    // function checkAvailability() {
+    // // Make an AJAX request to the server
+    // // You can use a library like Axios or the Fetch API for this
 
+    //     // Example using Fetch API
+    //     fetch('/check_availability', {
+    //         method: 'POST',
+    //         headers: {
+    //             'Content-Type': 'application/json',
+    //         },
+    //         body: JSON.stringify({ cartItems: /* send your cart items data here */ }),
+    //     })
+    //     .then(response => response.json())
+    //     .then(data => {
+    //         // Check the response from the server
+    //         if (data.allAvailable) {
+    //             // All items are available, proceed to checkout
+    //             // You can redirect the user to the checkout page or show a modal
+    //             // window for them to confirm the order.
+    //             alert('All items are available. Proceeding to checkout.');
+    //         } else {
+    //             // Some items are not available
+    //             alert('Some items are not available in the required quantity.');
+    //         }
+    //     })
+    //     .catch(error => {
+    //         console.error('Error checking availability:', error);
+    //     });
+    // }
 
     //     document.addEventListener('DOMContentLoaded', function () {
     //     // Assuming your form has an ID of 'addressForm'
