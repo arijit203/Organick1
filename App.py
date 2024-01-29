@@ -968,7 +968,7 @@ def placed_order():
 def send_order_details_email(email_receiver, order_id):
     print("Entered")
     try:
-        subject = "Your Organick Order ORD" +str(order_id)  +" was successfully delivered!"
+        subject = "Your Organick Order #ORD" +str(order_id)  +" was successfully delivered!"
         order = Placed_orders.query.get(order_id)
 
         # Fetch items for the order
@@ -981,13 +981,13 @@ def send_order_details_email(email_receiver, order_id):
         if len(discountCode)!=0:
             discountValue=Discount.query.filter_by(code=discountCode).first().amount
         else:
-            discountValue=' - '    
+            discountValue=''    
         print(order)
         items_str=""
         for item in items:
             MRP+=item.quantity*item.price
             items_str+=item.item_name+", "
-        items_str= items_str[:-1]
+        items_str= items_str[:-2]
         
         
         order_info = {
