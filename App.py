@@ -65,6 +65,7 @@ class Users(db.Model,UserMixin):
     def __repr__(self):
         return '<Name %r>' %self.name
 
+   
 
 
 @login_manager.user_loader
@@ -345,7 +346,7 @@ def user_profile_access_required(func):
         username = kwargs.get('username')  # Adjust this based on your route definition
         
         # Check if the current user is authenticated and matches the target user
-        if current_user.is_authenticated and current_user.username == username :
+        if current_user.is_authenticated   and current_user.username == username:
             # and session['is_user']
             return func(*args, **kwargs)  # User is authorized, proceed with the view
         else:
@@ -951,7 +952,7 @@ def placed_order():
             user_email=Users.query.filter_by(id=current_user.id).first().email
 
         send_order_details_email(user_email,order_id)
-        print("User EMail:", user_email)    
+        print("User Email:", user_email)    
         # send_order_details_email(user_email,order_id)
         flash("Order Placed Successfully! Arriving in 20mins")
         # Redirect to the shop.html page upon successful order placement
@@ -1029,7 +1030,6 @@ def send_order_details_email(email_receiver, order_id):
         # Print error details
         print(f"An error occurred: {e}")
        
-
 
 
 @app.route('/error_page',methods=['GET'])
