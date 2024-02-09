@@ -3,12 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Register</title>
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">    <!-- Include any additional CSS files here -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/register_component.css') }}">
     <script src="https://smtpjs.com/v3/smtp.js"></script>
-    
+    <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
     
 </head>
 <body>
@@ -132,6 +133,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
     <!-- Include any additional JS files here -->
     <script>
+        
         async function verifyEmail(event) {
             event.preventDefault();
             var email = document.getElementById("formBasicEmail").value;
@@ -270,60 +272,82 @@
             return "valid";
         }
 
-        
-        async function sendOTP() {
-            event.preventDefault();
-            const email = document.getElementById('formBasicEmail');
-            const otpverify = document.getElementsByClassName('otpverify')[0];
-            const emailFormGroup = document.querySelector('.form-email');
+       
+            async function sendOTP() {
+                event.preventDefault();
+                const email = document.getElementById('formBasicEmail');
+                const otpverify = document.getElementsByClassName('otpverify')[0];
+                const emailFormGroup = document.querySelector('.form-email');
+                console.log(email.value,"*****");
+                const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
 
-            let otp_val =Math.floor(Math.random() * 9000) + 1000; 
-            var emailVerifiedInput = document.getElementById('emailVerified');
+                const response = await fetch('/check_email', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': csrfToken,
+                    },
+                    body: JSON.stringify({ email: email.value }),  // Use 'body' instead of 'data'
+                });
+                const responseData = await response.json();
+                console.log(responseData.exists);
 
-            let emailbody = `<h2>Your OTP is </h2>${otp_val}`;
-            Email.send({
-            SecureToken : "7c33c11a-5a83-42f4-82e9-d310560dc1d5",
-            To : email.value,
-            From : "organick.groc@gmail.com",
-            Subject : "Email OTP For Organick Registration",
-            Body : emailbody,
-            }).then(
+       
 
-            message => {
-                if (message === "OK") {
-                   
-                    $('#otpModal').modal('show');
-                    
-                    
-                    const otp_btn = document.getElementById('verifyOTPBtn');
-
-                    otp_btn.addEventListener('click', () => {
-                        const otp1 = document.getElementById('otp1').value;
-                        const otp2 = document.getElementById('otp2').value;
-                        const otp3 = document.getElementById('otp3').value;
-                        const otp4 = document.getElementById('otp4').value;
-                        const enteredOTP = otp1 + otp2 + otp3 + otp4;
-                        if (enteredOTP == otp_val) {
-                            alert("Email address verified...");
-                            emailVerifiedInput.value = "true";
-                            console.log("is working")
-                            $('#otpModal').modal('hide'); // Close the modal
-                            // email.disabled = true; // Disable the email field
-                            email.readOnly = true;
-                            displayVerificationTick(emailFormGroup);
-                            event.preventDefault();
-                            console.log(email.value)
-                        }
-                        else {
-
-                            alert("Invalid OTP. Please Try Again");
-                            event.preventDefault();
-                        }
-                    })
+                if (!responseData.exists) {
+                    alert('Email is already registered. Please use a different email.');
+                    return;
                 }
+                const smtp_token = "{{ smtp_token }}";
+
+                let otp_val =Math.floor(Math.random() * 9000) + 1000; 
+                var emailVerifiedInput = document.getElementById('emailVerified');
+
+                let emailbody = `<h2>Your OTP is </h2>${otp_val}`;
+                Email.send({
+                SecureToken : smtp_token,
+                To : email.value,
+                From : "organick.groc@gmail.com",
+                Subject : "Email OTP For Organick Registration",
+                Body : emailbody,
+                }).then(
+
+                message => {
+                    if (message === "OK") {
+                    
+                        $('#otpModal').modal('show');
+                        
+                        
+                        const otp_btn = document.getElementById('verifyOTPBtn');
+
+                        otp_btn.addEventListener('click', () => {
+                            const otp1 = document.getElementById('otp1').value;
+                            const otp2 = document.getElementById('otp2').value;
+                            const otp3 = document.getElementById('otp3').value;
+                            const otp4 = document.getElementById('otp4').value;
+                            const enteredOTP = otp1 + otp2 + otp3 + otp4;
+                            if (enteredOTP == otp_val) {
+                                alert("Email address verified...");
+                                emailVerifiedInput.value = "true";
+                                console.log("is working")
+                                $('#otpModal').modal('hide'); // Close the modal
+                                // email.disabled = true; // Disable the email field
+                                email.readOnly = true;
+                                displayVerificationTick(emailFormGroup);
+                                event.preventDefault();
+                                console.log(email.value)
+                            }
+                            else {
+
+                                alert("Invalid OTP. Please Try Again");
+                                event.preventDefault();
+                            }
+                        })
+                    }
+                }
+                );
             }
-            );
-        }
+        
         function displayVerificationTick(emailFormGroup) {
             // Create an element for the verification tick
             const tickElement = document.createElement('span');

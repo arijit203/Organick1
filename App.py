@@ -23,6 +23,11 @@ from jinja2 import Environment, FileSystemLoader
 from email.message import EmailMessage
 import smtplib
 from flask import Flask, render_template_string,render_template
+import os
+from dotenv import load_dotenv
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+
 
 
 
@@ -262,16 +267,23 @@ class UserForm(FlaskForm):
     password_hash2=PasswordField('Confirm Password',validators=[DataRequired()])
     submit=SubmitField("Sign Up")
 
+# New route for checking if the email is in the database
 @app.route('/check_email', methods=['POST'])
 def check_email():
-    # Retrieve the email from the AJAX request
-    email = request.form.get('email')
+    try:
+        email = request.json.get('email')
+        print(email)
+        user = Users.query.filter_by(email=email).first()
+        print(user)
+        if user:
+            return jsonify({'exists': False})
+        else:
+            return jsonify({'exists': True})
 
-    # Check if the email exists in the database (modify this based on your database model)
-    user_exists = Users.query.filter_by(email=email).first() is not None
+    except Exception as e:
+        print(f"Error: {str(e)}")
+        return jsonify({'error': 'An error occurred'})
 
-    # Return a JSON response indicating whether the email exists
-    return jsonify({'exists': user_exists})
 
 
 @app.route('/reset_password', methods=['POST'])
@@ -309,7 +321,7 @@ def add_user():
             return render_template("user_register.html", name=name, form=form)
         
         user = Users.query.filter_by(email=form.email.data).first()
-        print("Hi there Bye there")
+        
         if user is None:
             # hash the password!!!
             hashed_pw = generate_password_hash(form.password_hash.data)
@@ -335,8 +347,8 @@ def add_user():
     form.email.data = ''
     form.password_hash.data = ''
 
-   
-    return render_template("user_register.html", name=name, form=form, username=username)
+    smtp_token = os.getenv("smtp_token")
+    return render_template("user_register.html", name=name, form=form, username=username,smtp_token=smtp_token)
 
 
 def user_profile_access_required(func):
@@ -378,8 +390,9 @@ def login():
             else:
                 flash('Invalid or Wrong Password - Try Again!!')    
         else:
-            flash("That User doesn't exist! Try Again...")            
-    return render_template('user_login.html',form=form)
+            flash("That User doesn't exist! Try Again...")   
+    smtp_token = os.getenv("smtp_token")         
+    return render_template('user_login.html',form=form,smtp_token=smtp_token)
 
 class ForgotPasswordForm(FlaskForm):
     email = StringField('Email', validators=[DataRequired(), Email()])
@@ -625,6 +638,7 @@ class AddressForm(FlaskForm):
     delivery_address = StringField('Delivery Address', validators=[InputRequired()])
     save_address_as = RadioField('Save Address as', choices=[('Home', 'Home'), ('Work', 'Work'), ('Other', 'Other')], validators=[InputRequired()])
 
+
     
 @app.route("/cart",methods=["GET","POST"])
 def cart():
@@ -635,7 +649,9 @@ def cart():
         .all()
     addresses = db.session.query(User_address).filter_by(user_id=current_user.id).all()
     form=AddressForm()
-    return render_template("cart.html",username=current_user.username,cart_items=cart_items,addresses=addresses,form=form)
+    google_maps_api_key = os.getenv("GOOGLE_MAPS_API_KEY")
+    print(google_maps_api_key,"****")
+    return render_template("cart.html",username=current_user.username,cart_items=cart_items,addresses=addresses,form=form,google_maps_api_key=google_maps_api_key)
 
 
 @app.route("/delete/<int:item_id>",methods=['GET'])
@@ -687,99 +703,182 @@ def decrease_quantity(item_id):
     
     
 
-@app.route('/save_address', methods=['GET','POST'])
+def user_address_to_dict(user_address):
+    return {
+        'id': user_address.id,
+        'user_id': user_address.user_id,
+        'title': user_address.title,
+        'receiver_name': user_address.receiver_name,
+        'delivery_address': user_address.delivery_address,
+        'address_type': user_address.address_type,
+        # Add more fields as needed
+    }
+
+@app.route('/save_address', methods=['POST'])
 def save_address():
-    edit_mode = request.form.get('edit_mode', 'false').lower() == 'true'
+    
+    form = AddressForm()
 
-    if edit_mode:
-        # This is an edit operation
-        address_id = request.form.get('address_id')
-        # Handle updating the existing address with ID address_id
+    if form.validate_on_submit():
+        # Create a new user address instance
+        new_user_address = User_address(
+            user_id=current_user.id,
+            title=form.title.data,
+            receiver_name=form.receiver_name.data,
+            delivery_address=form.delivery_address.data,
+            address_type=form.save_address_as.data
+        )
 
-        # url_for('edit_address', address_id=address_id)
-        flash("Address updated successfully")
-    else:
-        form = AddressForm()
-
-        if form.validate_on_submit():
-            # Create a new user address instance
-            new_user_address = User_address(
-                user_id=current_user.id,  # Assuming user_id is associated with the current user
-                title=form.title.data,
-                receiver_name=form.receiver_name.data,
-                delivery_address=form.delivery_address.data,
-                address_type=form.save_address_as.data
-            )
-
-            # Add the user address to the database
-            db.session.add(new_user_address)
-            db.session.commit()
-            flash("Address added, now Proceed to Payment")
-           
-
-            addresses = User_address.query.filter_by(user_id=current_user.id).all()
-            cart_items = db.session.query(Cart, Order_items, Category) \
-                .join(Order_items, Cart.item_id == Order_items.id) \
-                .join(Category, Order_items.category_id == Category.category_id) \
-                .filter(Cart.user_id == current_user.id) \
-                .all()
-
-            return render_template("cart.html", username=current_user.username, cart_items=cart_items, addresses=addresses, form=form)
-        else:
-            # Handle form validation errors
-            flash('Form validation error. Please check your input.', 'error')
-        return redirect(url_for('cart'))
-
-
-@app.route('/edit_address/<int:address_id>', methods=['GET','POST'])
-def edit_address(address_id):
-   
-    # Fetch the address details from the database based on the address_id
-    address = User_address.query.get(address_id)
-    print("Fetching from edit_address GET")
-    # Return the address details as JSON
-
-    return jsonify({
-        'id': address.id,
-        'user_id': address.user_id,
-        'title': address.title,
-        'receiver_name': address.receiver_name,
-        'delivery_address': address.delivery_address,
-        'address_type': address.address_type,
-        'edit_mode':True
-    })
-
-@app.route('/update_address/<int:address_id>', methods=['POST'])
-def update_address(address_id):
-    edit_mode = request.form.get('edit_mode', 'false').lower() == 'true'
-
-    if edit_mode:
-        # Update the existing address with the new information
-        address = User_address.query.get(address_id)
-        address.title = request.form['title']
-        address.receiver_name = request.form['receiver_name']
-        address.delivery_address = request.form['delivery_address']
-        address.address_type = request.form['save_address_as']
-        print("Updated")
-        
+        # Add the user address to the database
+        db.session.add(new_user_address)
         db.session.commit()
-
-        # Return success response
-        flash('Address updated successfully')
-
-        return redirect(url_for('cart'))
-        # return jsonify({'message': 'Address updated successfully', 'redirect_url': url_for('cart')})
+        
+        # Fetch addresses and convert them to dictionaries
+        addresses = User_address.query.filter_by(user_id=current_user.id).all()
+        # addresses_data = [user_address_to_dict(address) for address in addresses]
+        
+        return jsonify({'success': True, 'message': 'Address added successfully', 'address': user_address_to_dict(new_user_address)})
     else:
-        # Handle the case where edit_mode is not set
+        # Handle form validation errors
+        flash('Form validation error. Please check your input.', 'error')
+        return jsonify({'success': False, 'message': 'Form validation error'})
+# @app.route('/save_address', methods=['POST'])
+# def save_address():
+   
+#     form = AddressForm()
+
+#     if form.validate_on_submit():
+#         # Create a new user address instance
+#         new_user_address = User_address(
+#             user_id=current_user.id,  # Assuming user_id is associated with the current user
+#             title=form.title.data,
+#             receiver_name=form.receiver_name.data,
+#             delivery_address=form.delivery_address.data,
+#             address_type=form.save_address_as.data
+#         )
+
+#         # Add the user address to the database
+#         db.session.add(new_user_address)
+#         db.session.commit()
+#         flash("Address added, now Proceed to Payment")
+
+#         # Fetch and return all addresses after adding
+#         addresses = User_address.query.filter_by(user_id=current_user.id).all()
+#         return jsonify({'success': True, 'message': 'Address added successfully', 'addresses': addresses})
+#     else:
+#         # Handle form validation errors
+#         flash('Form validation error. Please check your input.', 'error')
+#         return jsonify({'success': False, 'message': 'Form validation error'})    
+@app.route('/get_all_addresses', methods=['GET'])
+def get_all_addresses():
+    try:
+        # Fetch addresses for the current user
+        addresses = User_address.query.filter_by(user_id=current_user.id).all()
+
+        # Transform addresses to a format suitable for JSON
+        addresses_data = [{
+            'id': address.id,
+            'title': address.title,
+            'receiver_name': address.receiver_name,
+            'delivery_address': address.delivery_address,
+            'address_type': address.address_type
+        } for address in addresses]
+
+        return jsonify({'success': True, 'address_details': addresses_data})
+    except Exception as e:
+        # Handle exceptions appropriately
+        print(f"Error: {str(e)}")
+        return jsonify({'success': False, 'message': 'Error fetching addresses'})
+
+
+
+
+@app.route('/get_address_details/<int:address_id>', methods=['GET'])
+def get_address_details(address_id):
+    address = User_address.query.get(address_id)
+
+    if address:
+        # Convert the address object to a dictionary
+        address_details = user_address_to_dict(address)
+        return jsonify({'success': True, 'address_details': address_details})
+    else:
+        return jsonify({'success': False, 'message': 'Address not found'})
+
+
+# @app.route('/edit_address/<int:address_id>', methods=['GET'])
+# def edit_address(address_id):
+   
+#     # Fetch the address details from the database based on the address_id
+#     address = User_address.query.get(address_id)
+#     print("Fetching from edit_address GET")
+#     # Return the address details as JSON
+
+#     return jsonify({
+#         'id': address.id,
+#         'user_id': address.user_id,
+#         'title': address.title,
+#         'receiver_name': address.receiver_name,
+#         'delivery_address': address.delivery_address,
+#         'address_type': address.address_type,
+#         'edit_mode':True
+#     })
+
+
+# @app.route('/update_address/<int:address_id>', methods=['POST'])
+# def update_address(address_id):
+#     edit_mode = request.form.get('edit_mode', 'false').lower() == 'true'
+
+#     if edit_mode:
+#         # Update the existing address with the new information
+#         address = User_address.query.get(address_id)
+#         address.title = request.form['title']
+#         address.receiver_name = request.form['receiver_name']
+#         address.delivery_address = request.form['delivery_address']
+#         address.address_type = request.form['save_address_as']
+#         print("Updated")
+        
+#         db.session.commit()
+
+#         # Return success response
+#         flash('Address updated successfully')
+
+#         return redirect(url_for('cart'))
+#         # return jsonify({'message': 'Address updated successfully', 'redirect_url': url_for('cart')})
+#     else:
+#         # Handle the case where edit_mode is not set
        
-        flash('Invalid request. Please try again.', 'error')
-        return redirect(url_for('cart'))
+#         flash('Invalid request. Please try again.', 'error')
+#         return redirect(url_for('cart'))
     
     # Redirect to a relevant page (e.g., cart or a confirmation page)
     # flash('Address updated successfully')
       # Change 'cart' to the appropriate endpoint
 
-@app.route('/delete_address/<int:address_id>', methods=['GET',"POST"])
+
+@app.route('/update_address/<int:address_id>', methods=['POST'])
+def update_address(address_id):
+    try:
+        # Fetch the existing address
+        address = User_address.query.get(address_id)
+
+        # Update the fields based on the form data
+        address.title = request.form['title']
+        address.receiver_name = request.form['receiver_name']
+        address.delivery_address = request.form['delivery_address']
+        address.address_type = request.form['save_address_as']
+
+        # Commit changes to the database
+        db.session.commit()
+
+        # Return success response
+        
+        return jsonify({'message': 'Address updated successfully', 'success': True})
+    except Exception as e:
+        # Handle exceptions appropriately
+        print(f"Error: {str(e)}")
+        flash('Error updating address', 'error')
+        return jsonify({'message': 'Error updating address', 'success': False})
+@app.route('/delete_address/<int:address_id>', methods=["POST"])
 def delete_address(address_id):
     # Find the address in the database
     address = User_address.query.filter_by(id=address_id).first()
@@ -1087,6 +1186,47 @@ def order_details(order_id):
     except Exception as e:
         print(f"Error in order_details route: {str(e)}")
         return jsonify({'error': 'Internal Server Error'}), 500
+    
+
+
+@app.route('/send_email', methods=['POST'])
+def send_email():
+    if request.method == 'POST':
+        # Get form data
+        full_name = request.form['full_name']
+        user_email = request.form['user_email']
+        company = request.form['company']
+        subject = request.form['subject']
+        message = request.form['message']
+
+        # Set up the email content
+        sender_email = user_email# Replace with your email address
+        receiver_email = "organick.groc@gmail.com"
+        email_subject = f"New Inquiry - {subject}"
+
+        email_body = f"Full Name: {full_name}\nEmail: {user_email}\nCompany: {company}\n\nMessage:\n{message}"
+
+        msg = MIMEMultipart()
+        msg['From'] = sender_email
+        msg['To'] = receiver_email
+        msg['Subject'] = email_subject
+        msg.attach(MIMEText(email_body, 'plain'))
+
+        # Set up the SMTP server and send the email
+        try:
+            server = smtplib.SMTP('smtp.gmail.com', 587)
+            server.starttls()
+            server.login(sender_email, 'your_password')  # Use your 'App Password' for Gmail
+            server.sendmail(sender_email, receiver_email, msg.as_string())
+            server.quit()
+            flash("Feedback sent successfully!")
+            redirect(url_for('home'))
+        except Exception as e:
+            return f"Error sending email: {str(e)}"
+
+
+
+
 # #create Logout page
 @app.route('/user_logout',methods=['GET','POST'])
 @login_required

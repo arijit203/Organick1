@@ -3,6 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Contact &mdash; Agriculture Website</title>
     <!-- Link Swiper's CSS -->
     <link
@@ -48,12 +49,13 @@
             <label for="search-box" class="fas fa-search"></label>
           </form>
         </div>
-        <div class="shopping-cart">
+        <div class="shopping-cart" style="position: fixed;
+        margin-top: 15px;">
           {% if current_user.is_authenticated %}
               {% if cart_items %}
                   {% for cart_item,item,category in cart_items %}
-                      <div class="box">
-                        <a href="/delete_from_cart/{{ cart_item.item_id }}">
+                      <div class="box" data-item-id="{{ cart_item.item_id }}">
+                        <a href="#" class="delete-from-cart">
                           <i class="fas fa-times"></i>
                         </a>
                         
@@ -67,7 +69,7 @@
                       </div>
                   {% endfor %}
                   <h3 class="total">Total: <span>₹{{ total_price }}</span></h3>
-                  <a href="/cart" class="btn">Checkout Cart</a>
+                  <a href="/cart" class="btn" style="font-size: 1.5rem;">Checkout Cart</a>
               {% else %}
                   <p>Your cart is empty.</p>
               {% endif %}
@@ -111,6 +113,8 @@
         </div>
       </div>
     </header>
+    <form action="POST">
+      {{ form.csrf_token }}
     <section class="contact">
       <div class="container6 contact_container">
         <div class="form contact_form">
@@ -118,16 +122,19 @@
             <div class="form_group">
               <label for="name" class="form_group_label">FullName*</label>
               <input
+                id="name"
                 type="text"
                 class="form_input"
                 placeholder="Enter your name....." />
             </div>
             <div class="form_group">
               <label for="email" class="form_group_label">Your Email*</label>
-              <input id="name"
-                type="text"
+              <input id="email"
+              style="text-transform: lowercase;"
                 class="form_input"
-                placeholder="Enter your email....." />
+                placeholder="Enter your email....."
+                
+                />
             </div>
             <div class="form_group">
               <label for="company" class="form_group_label"
@@ -143,13 +150,15 @@
               <input id="subject"
                 type="text"
                 class="form_input"
+                style="text-transform:initial"
                 placeholder="Enter your subject....." />
             </div>
           </div>
           <textarea id="message"
+            id="message"
             class="form_text"
             placeholder="please explain....."></textarea>
-          <button class="form_btn" style="margin-left:400px">Send an Email</button>
+          <button type="submit" id="sendEmailBtn" class="form_btn" style="margin-left:400px">Send an Email</button>
         </div>
       </div>
       <p style="color: green;padding-left: 330px;
@@ -164,7 +173,7 @@
         </form>
       </div>
     </section>
-
+    </form>
     <!-- Swiper JS -->
     <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
 
@@ -176,6 +185,42 @@
 
   <!-- Initialize Swiper -->
   <script>
+     document.getElementById('sendEmailBtn').addEventListener('click', function () {
+        // Get data from input fields or other sources
+        var fullName = document.getElementById('name').value;
+        var userEmail = document.getElementById('email').value;
+        var company = document.getElementById('company').value;
+        var subject = document.getElementById('subject').value;
+        var message = document.getElementById('message').value;
+
+        // Create an object with the data
+        var data = {
+            full_name: fullName,
+            user_email: userEmail,
+            company: company,
+            subject: subject,
+            message: message
+        };
+        
+        // Make a POST request using the Fetch API
+        fetch('/send_email', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+               
+            },
+            body: JSON.stringify(data)
+        })
+        .then(response => response.json())
+        .then(data => {
+            console.log('Success:', data);
+            // Handle success, e.g., show a success message
+        })
+        .catch((error) => {
+            console.error('Error:', error);
+            // Handle error, e.g., show an error message
+        });
+    });
     var swiper = new Swiper(".mySwiper", {
       pagination: {
         el: ".swiper-pagination",
@@ -219,35 +264,84 @@
   const subject = document.getElementById('subject').value;
   const message = document.getElementById('message').value;
 
-  // Validate form data (add your own validation logic here)
-
-  // Initialize Email.js
-  emailjs.init("user_your_emailjs_user_id");
-
-  // Set the email parameters
-  const params = {
-    to_email: "arijit.saha1373@gmail.com",  // Replace with your target email address
-    from_name: name,
-    from_email: email,
-    company: company,
-    subject: subject,
-    message: message,
-  };
-
-  // Send the email
-  emailjs.send("service_your_emailjs_service_id", "template_your_emailjs_template_id", params)
-    .then(
-      function(response) {
-        console.log("Email sent successfully:", response);
-        showMessageBox('Email sent successfully!');
-      },
-      function(error) {
-        console.error("Error sending email:", error);
-        showMessageBox('Failed to send email. Please try again later.');
-      }
-    );
+ 
 }    
+$(document).ready(function () {
+      $('.shopping-cart').on('click', '.delete-from-cart', function (e) {
+        
+        e.preventDefault();
 
+        // Get the item id from the data attribute
+        var itemId = $(this).closest('.box').data('item-id');
+        
+        var csrfToken = $('meta[name=csrf-token]').attr('content');
+
+        // Include CSRF token in AJAX request headers
+        $.ajax({
+            type: 'POST',
+            url: '/delete_from_cart/' + itemId,
+            data: {csrf_token: csrfToken},  // Include CSRF token in the data
+            success: function (response) {
+                
+                // Update the cart content on the page
+                updateCartContent();
+            },
+            error: function (xhr, status, error) {
+                console.error('AJAX error:', status, error);
+                console.log(xhr.responseText); // Log the response text for more details
+            }
+        });
+    });
+
+    function updateCartContent() {
+        // Use AJAX to fetch the updated cart content from the server
+        $.ajax({
+            type: 'GET',
+            url: '/get_cart_content',
+            success: function (cartContent) {
+                // Update the cart section in your HTML with the new content
+                $('.shopping-cart').empty();
+                if (cartContent.length === 0) {
+                  $('.shopping-cart').append('<p>Your cart is empty.</p>');
+            } else {
+                // Iterate through the cart items and append them to the cart section
+                for (var i = 0; i < cartContent.length; i++) {
+                    var cartItem = cartContent[i];
+                    console.log("Hi deleted:", cartItem.item_id);
+                    var cartItemHtml = '<div class="box" data-item-id="' + cartItem.item_id + '">' +
+                        '<a href="#" class="delete-from-cart">' +
+                        '<i class="fas fa-times"></i>' +
+                        '</a>' +
+                        '<img class="imi" src="static/images/items/' + cartItem.name.replace(/\s+/g, '_').toLowerCase() + '.png" alt="' + cartItem.name + '">' +
+                        '<div class="content">' +
+                        '<h3>' + cartItem.name + '</h3>' +
+                        '<span class="quantity">' + cartItem.quantity + '</span>' +
+                        '<span class="multiply">x</span>' +
+                        '<span class="price">₹' + cartItem.price + '</span>' +
+                        '</div>' +
+                        '</div>';
+                    
+                    $('.shopping-cart').append(cartItemHtml);
+                }
+
+                // Add total price and checkout button (modify as needed)
+                $('.shopping-cart').append('<h3 class="total">Total: <span>₹' + getTotalPrice(cartContent) + '</span></h3>');
+                $('.shopping-cart').append('<a href="/cart" class="btn">Checkout Cart</a>');
+              }
+            },
+            error: function (jqXHR, textStatus, errorThrown) {
+                console.error('Error fetching cart content:', textStatus, errorThrown);
+            }
+        });
+    }
+    function getTotalPrice(cartContent) {
+    var total = 0;
+    for (var i = 0; i < cartContent.length; i++) {
+        total += cartContent[i].price * cartContent[i].quantity;
+    }
+    return total.toFixed(2);
+}
+  })
     
   </script>
   </body>

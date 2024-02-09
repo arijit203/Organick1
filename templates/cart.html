@@ -4,6 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Cart</title>
     <!-- Bootstrap CSS -->
     
@@ -12,7 +13,7 @@
     rel="stylesheet"
     href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Recursive:wght@300&display=swap" />
-    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAqPekF8eGHrEADspHyIKC0q-Gf0wnc39c&libraries=places&callback=initMap" async defer></script>
+    <script src="https://maps.googleapis.com/maps/api/js?key={{ google_maps_api_key }}&libraries=places&callback=initMap" async defer></script>
     <link rel="stylesheet" href="static/css/cart_component_2.css" />
     <link rel="stylesheet" href="{{ url_for('static', filename='css/cart_component.css') }}">
     <style>
@@ -36,6 +37,10 @@
         .saveAddressOptionLabel {
             margin-right: 15px;     /* Add some spacing between radio buttons if needed */
         } */
+
+        .saveAddressOptionLabel1 {
+            margin-right: 15px;     /* Add some spacing between radio buttons if needed */
+        } */
         .options-container {
         display: flex;
         /* Add any additional styles for the container here */
@@ -56,7 +61,18 @@
   .cart-container {
     margin-top: 170px; /* Adjust this value based on the height of your nav */
   }
-   
+  .saveAddressOptionLabel1 {
+        list-style-type: none;
+        padding: 0;
+        margin: 0;
+        display: flex;
+        /* Add any additional styles for the label here */
+    }
+
+    /* Adjust the margin or padding as needed */
+    .saveAddressOptionLabel1 input {
+        margin-right: 10px;
+    }
 
     .saveAddressOptionLabel {
         list-style-type: none;
@@ -262,7 +278,7 @@
                 
                     <div class="address-list">
                         {% for address in addresses %}
-                            <div class="form-check address-item">
+                            <div class="form-check address-item" id="address{{ address.id }}">
                                 <label class="form-check-label" for="address{{ loop.index }}">
                                     
                                     <span class="address-type">
@@ -308,10 +324,10 @@
 
     <!-- Modal for adding a new Address -->
     <!-- Modal -->
-    <div class="modal fade" id="addAddressModal" tabindex="-1" aria-labelledby="addAddressModalLabel" aria-hidden="true">
+    <div class="modal fade" id="addAddressModal" tabindex="-1" aria-labelledby="addAddressModalLabel" aria-hidden="true" style="padding-top:165px">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
-                <div class="modal-body" id="pad">
+                <div class="modal-body" >
                     <!-- Set explicit dimensions for the map container -->
                     <div class="modal-body d-flex">
                         <!-- Map container -->
@@ -328,11 +344,10 @@
     
                             <div class="kSxeiC" style="font-size: 16px;">This allows us to find you easily and give you a timely delivery experience.</div>
     
-                            <form action="/save_address" method="POST" class="a" style="margin-top: 25px;" id="addressForm">
+                            <form action="#" method="POST" class="a" style="margin-top: 25px;" id="addAddressForm">
                                 {{ form.csrf_token }}
     
-                                <!-- Hidden field for edit_mode -->
-                                <input type="hidden" name="edit_mode" id="editModeField" value="false">
+                                
     
                                 <div class="form-group" style="display: flex; margin-bottom: 15px;">
                                     {{ form.title(class="select-control", style="font-size: 16px;width: 40%; padding-right: 20px;padding-left: 20px; border: var(--bs-border-width) solid var(--bs-border-color);border-radius: 0.3rem ;",id="title",placeholder="Title" ,required=True) }}
@@ -349,7 +364,7 @@
     
                                 <div class="c" style="font-size: 16px; margin-bottom: 15px;">Save Address as</div>
     
-                                <div class="options-container" style="background-color: white;outline: none;">
+                                <div class="options-container1" style="background-color: white;outline: none;">
                                     <div class="DeliveryAddressModal__AddresTypeWrapper-sc-1s23trb-25 cEavcC" style="background-color: white;width:250px;outline: none;">
                                         <label class="saveAddressOptionLabel" style="background-color: white;width:250px;outline: none;width:250px;border:0px;margin-right: 10px;">
                                             {{ form.save_address_as(id="selectedOption" ,name="saveAddressAs" ,value="Home" ,onchange="updateSelectedOption(this)",style="list-style-type:none;padding: 0px;margin-right: 10px;   border-radius:0.5rem; display: flex; ") }}
@@ -359,7 +374,7 @@
     
                                 <br><br><br>
     
-                                <button type="submit" class="btn btn-success" style="width: 100%;padding: 1.5rem;font-size: 14px;" id="submitBtn">Save Address</button>
+                                <button type="submit" class="btn btn-success" style="width: 100%;padding: 1.5rem;font-size: 14px;" id="addAddressBtn">Save Address</button>
                             </form>
                         </div>
                     </div>
@@ -367,12 +382,73 @@
             </div>
         </div>
     </div>
+
+
+    <!-- Update Address Modal -->
+    <div class="modal fade" id="updateAddressModal" tabindex="-1" aria-labelledby="updateAddressModalLabel" aria-hidden="true" style="padding-top:150px">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-body" >
+                    <!-- Set explicit dimensions for the map container -->
+                    <div class="modal-body d-flex">
+                        <!-- Map container -->
+                        <div id="map1" style="height: 527px; width: 50%; position: relative; overflow: hidden;"></div>
+    
+                        <div class="bwQMZI" style="width: 50%; padding: 20px;">
+                            <div class="to_style_box">
+                                <div class="Select-placeholder" id="locationIndicator1" style="font-size:14px">E.g. Sector 32 or Kormangala or Park View Residency</div>
+                            </div>
+                            <h1 class="jmoJzL" style="margin-bottom: 15px; font-size: 20px;">
+                                Enter Complete Address
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" style="margin-left:100px"></button>
+                            </h1>
+    
+                            <div class="kSxeiC" style="font-size: 16px;">This allows us to find you easily and give you a timely delivery experience.</div>
+    
+                            <form  method="POST" class="d" style="margin-top: 25px;" id="updateAddressForm">
+                                {{ form.csrf_token }}
+                                <input type="hidden" id="address_id" name="address_id" >
+
+                                <div class="form-group" style="display: flex; margin-bottom: 15px;">
+                                    {{ form.title(class="select-control", style="font-size: 16px;width: 40%; padding-right: 20px;padding-left: 20px; border: var(--bs-border-width) solid var(--bs-border-color);border-radius: 0.3rem ;",id="title1",placeholder="Title" ,required=True) }}
+                                    <div style="width: 50%;margin-left: 20px;">
+                                        {{ form.receiver_name(class="form-control", style="font-size: 16px; padding: 10px;",placeholder="Receiver's Name",id="receiver_name1", required=True) }}
+                                    </div>
+                                </div>
+    
+                                <div class="form-group" style="margin-bottom: 15px;">
+                                    {{ form.delivery_address(class="form-control", style="font-size: 16px; padding: 10px;",placeholder="Delivery Address1",id="delivery_address1", required=True) }}
+                                </div>
+    
+                                <a class="e" style="font-size:15px; margin-bottom: 15px; margin-left: 250px;color:black;cursor: pointer;">Get Own Location</a>
+    
+                                <div class="f" style="font-size: 16px; margin-bottom: 15px;">Save Address as</div>
+    
+                                <div class="options-container1" style="background-color: white;outline: none;">
+                                    <div class="DeliveryAddressModal__AddresTypeWrapper-sc-1s23trb-25 cEavcC" style="background-color: white;width:250px;outline: none;">
+                                        <label class="saveAddressOptionLabel1" style="background-color: white;width:250px;outline: none;width:250px;border:0px;margin-right: 10px;">
+                                            {{ form.save_address_as(id="selectedOption1"  ,onchange="updateSelectedOption1(this)",style="padding: 0px;margin-right: 10px;   border-radius:0.5rem; display: flex; ") }}
+                                        </label>
+                                    </div>
+                                </div>
+    
+                                <br><br><br>
+    
+                                <button type="submit" class="btn btn-success" style="width: 100%;padding: 1.5rem;font-size: 14px;" id="updateAddressBtn">Update Address</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     
     <!-- Bootstrap JS and Popper.js -->
     <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
-    <script src="static/script.js" lang="javascript"></script>
+    <!-- <script src="static/script.js" lang="javascript"></script> -->
     <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
 
     
@@ -385,7 +461,7 @@
     });
     
         $(document).ready(function () {
-
+           
             $('#proceedToCheckoutBtn').click(function() {
         // Make an Ajax request to check item availability
         $.ajax({
@@ -564,12 +640,191 @@ $('#addAddressModal').on('shown.bs.modal', function () {
     initMap();
 });
 
+$('#updateAddressModal').on('shown.bs.modal', function () {
+    initMap1();
+});
+
 let map;
 
 
 
+function initMap1() {
+    // Initialize the map
+    var map = new google.maps.Map(document.getElementById('map1'), {
+        center: { lat: 0, lng: 0 },
+        zoom: 15
+    });
 
-function initMap() {
+    // Create a geocoder instance
+    var geocoder = new google.maps.Geocoder();
+
+    // Create a marker with default position (0, 0)
+    var marker = new google.maps.Marker({
+        map: map,
+        draggable: true, // Make the marker draggable
+    });
+
+    var deliveryAddressInput = document.querySelector('input[placeholder="Delivery Address1"]');
+
+    var address = deliveryAddressInput.value;
+         // Make a geocoding request
+        geocoder.geocode({ address: address }, function (results, status) {
+            if (status === 'OK') {
+                // If the geocoding is successful, you can access the latitude and longitude
+                var latitude = results[0].geometry.location.lat().toFixed(6); // Adjust the number of decimal places as needed
+                var longitude = results[0].geometry.location.lng().toFixed(6);
+
+                map = new google.maps.Map(document.getElementById('map1'), {
+                center: { lat: parseFloat(latitude), lng: parseFloat(longitude) },
+                zoom: 15
+                });
+                 // Create a marker and set its position
+                marker = new google.maps.Marker({
+                    position: { lat: parseFloat(latitude), lng: parseFloat(longitude) },
+                    map: map,
+                    title: 'Delivery Location',
+                    draggable: true,
+                });
+                google.maps.event.addListener(marker, 'dragend', function () {
+                    // Update the input field with the new location address
+                    geocodeLatLng(marker.getPosition());
+                });
+
+                // Function to reverse geocode the LatLng to an address
+                function geocodeLatLng(latlng) {
+                    geocoder.geocode({ 'location': latlng }, function (results, status) {
+                        if (status === 'OK') {
+                            if (results[0]) {
+                                // Update the input field with the address
+                                deliveryAddressInput.value = results[0].formatted_address;
+                            }
+                        }
+                    });
+                }
+            } else {
+                // Handle geocoding errors
+                console.error('Geocoding failed:', status);
+            }
+        });
+
+    // Function to update the marker and map based on the address
+    function updateMapAndMarker(address) {
+        // Make a geocoding request
+        geocoder.geocode({ address: address }, function (results, status) {
+            if (status === 'OK') {
+                // If geocoding is successful, update the map and marker
+                var location = results[0].geometry.location;
+
+                map.setCenter(location);
+                marker.setPosition(location);
+            } else {
+                // Handle geocoding errors
+                console.error('Geocoding failed:', status);
+            }
+        });
+    }
+
+    // Set up an event listener for when the marker is dragged
+    google.maps.event.addListener(marker, 'dragend', function () {
+        // Update the input field with the new location address
+        geocodeLatLng(marker.getPosition());
+    });
+
+    // Function to reverse geocode the LatLng to an address
+    function geocodeLatLng(latlng) {
+        geocoder.geocode({ 'location': latlng }, function (results, status) {
+            if (status === 'OK') {
+                if (results[0]) {
+                    // Update the input field with the address
+                    deliveryAddressInput.value = results[0].formatted_address;
+                }
+            }
+        });
+    }
+
+    // Get the input element for the Delivery Address
+    var deliveryAddressInput = document.querySelector('input[placeholder="Delivery Address1"]');
+
+    // Set up an event listener for when the input changes
+    deliveryAddressInput.addEventListener('input', function () {
+        // Get the value of the input
+        var address = deliveryAddressInput.value;
+
+        // Perform a geocoding search and update the map and marker
+        updateMapAndMarker(address);
+    });
+}
+
+    function updateSelectedOption1(radioButton) {
+        const optionLabels = document.querySelectorAll('.saveAddressOptionLabel1');
+
+        optionLabels.forEach(label => label.classList.remove('selected'));
+        radioButton.closest('label').classList.add('selected');
+        console.log("updateSelectedOption1 ",radioButton);
+        document.getElementById('selectedOption1').value = radioButton.value;
+    
+    }
+    const mapElement1 = document.getElementById('map1');
+    const locationIndicatorElement1 = document.querySelector('#locationIndicator1');
+    const getLocationBtn1 = document.querySelector('.e');
+    
+    // Initialize marker variable
+    let marker1;
+
+    getLocationBtn1.addEventListener('click', () => {
+        navigator.geolocation.getCurrentPosition(position => {
+            console.log(position)
+            const { latitude, longitude } = position.coords;
+            const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`;
+            fetch(url)
+                .then(res => res.json())
+                .then(data => {
+                    const address = data.address;
+                    const locationString = `${address.suburb || ''}, ${address.city || address.town || address.village || ''}, ${address.country || ''}`;
+                    locationIndicatorElement1.innerText = locationString;
+                    console.table(address);
+
+                    // Initialize map centered on the user's location
+                    const map = new google.maps.Map(mapElement1, {
+                        center: { lat: latitude, lng: longitude },
+                        zoom: 15
+                    });
+
+                    // Add a marker to the map at the user's location
+                    marker1 = new google.maps.Marker({
+                        position: { lat: latitude, lng: longitude },
+                        map: map,
+                        title: 'Your Location',
+                        draggable: true
+                    });
+
+                    // Update the input field with the new location address when marker is dragged
+                    google.maps.event.addListener(marker1, 'dragend', function () {
+                        geocodeLatLng1(marker1.getPosition());
+                    });
+                })
+                .catch(() => {
+                    console.log('Error fetching data from API');
+                });
+        });
+    });
+    function geocodeLatLng1(latlng) {
+        const geocoder = new google.maps.Geocoder();
+        geocoder.geocode({ 'location': latlng }, function (results, status) {
+            if (status === 'OK') {
+                if (results[0]) {
+                    const address = results[0].formatted_address;
+                    locationIndicatorElement1.innerText = address;
+                } else {
+                    console.log('No results found');
+                }
+            } else {
+                console.log('Geocoder failed due to: ' + status);
+            }
+        });
+    }
+    
+    function initMap() {
         // Initialize the map
         var map = new google.maps.Map(document.getElementById('map'), {
             center: {lat: -34.397, lng: 150.644},
@@ -633,7 +888,7 @@ function initMap() {
 
         optionLabels.forEach(label => label.classList.remove('selected'));
         radioButton.closest('label').classList.add('selected');
-
+        console.log("updateSelectedOption ",radioButton);
         document.getElementById('selectedOption').value = radioButton.value;
     
     }
@@ -702,98 +957,496 @@ function initMap() {
         options.style.display = (options.style.display === 'none' || options.style.display === '') ? 'block' : 'none';
     }
 
-    function editAddress(addressId) {
-        // Make an AJAX request to get the address details
-        console.log(addressId);
-        fetch('/edit_address/' + addressId)
-            .then(response => {
-                console.log('Response status:', response.status);
-                return response.json();
-            })
-            .then(data => {
-                console.log('Data received:', data);
-                // Populate the addAddressModal with the fetched address details
-                document.getElementById('title').value = data.title;
-                document.getElementById('receiver_name').value = data.receiver_name;
-                document.getElementById('delivery_address').value = data.delivery_address;
-                console.log(data.address_type)
-                document.getElementById('selectedOption').value = data.address_type;
-                
-                // Set the value of edit_mode to true
-                document.getElementById('editModeField').value = 'true';
-                console.log("***");
-                
-               
-                // Change the form action to /update_address
-                document.getElementById('submitBtn').innerText = 'Update Address';
-                document.querySelector('form').action = '/update_address/' + addressId;
+document.getElementById('addAddressForm').addEventListener('submit', async function (event) {
+    event.preventDefault();
 
-                // Show the modal
-                $('#addAddressModal').modal('show');
-                // Set the value of edit_mode to false
-               
+    const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
 
-                
+    const formData = new FormData(this);
 
-            })
-            .catch(error => console.error('Error:', error));
+    try {
+        const response = await fetch('/save_address', {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': csrfToken,
+            },
+            body: formData,
+        });
+
+        if (response.ok) {
+            // Handle success (e.g., display a success message)
+            console.log('Address saved successfully!');
+
+            
+            // Optionally, close the modal
+            $('#addAddressModal').modal('hide');
+
+            // Fetch and display all addresses after saving
+             const addressData = await response.json();
+             console.log(addressData,"- addressData");
+
+            // Update the UI with the saved address
+            updateAddressesUI(addressData.address);
+            $('#addressModal').modal('show');
+        } else {
+            // Handle errors (e.g., display an error message)
+            console.error('Failed to save address.');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+    }
+});
+
+// Function to fetch and display all addresses
+// Function to update the UI with addresses
+function updateAddressesUI(addressData) {
+    // Example: Update the address list container
+    const addressListContainer = document.querySelector('.address-list');
+
+    const addressItem = document.createElement('div');
+    addressItem.className = 'form-check address-item';
+    addressItem.id = `address${addressData.id}`;
+
+    const label = document.createElement('label');
+    label.className = 'form-check-label';
+    label.htmlFor = `address${addressData.id}`;
+
+    const addressType = document.createElement('span');
+    addressType.className = 'address-type';
+
+    const input = document.createElement('input');
+    input.className = 'form-check-input';
+    input.type = 'radio';
+    input.name = 'existingAddress';
+    input.id = `address${addressData.id}`;
+    input.value = addressData.id;
+    input.addEventListener('change', () => updateSelectedAddress(addressData.id));
+
+    const actions = document.createElement('span');
+    actions.className = 'actions';
+
+    const optionsIcon = document.createElement('span');
+    optionsIcon.textContent = '...';
+    optionsIcon.style.marginLeft = '290px';
+    optionsIcon.style.fontSize = '25px';
+    optionsIcon.addEventListener('click', () => showOptions(addressData.id));
+
+    const optionsContainer = document.createElement('div');
+    optionsContainer.id = `options${addressData.id}`;
+    optionsContainer.className = 'options';
+    optionsContainer.style.display = 'none';
+    optionsContainer.style.marginLeft = '210px';
+    optionsContainer.style.color = 'black';
+
+    const editLink = document.createElement('a');
+    editLink.href = '#';
+    editLink.textContent = 'Edit';
+    editLink.style.color = 'black';
+    editLink.style.textDecoration = 'none';
+    editLink.addEventListener('click', (event) => editAddress(addressData.id, event));
+
+    const deleteSpan = document.createElement('span');
+    deleteSpan.textContent = ' | ';
+
+    const deleteLink = document.createElement('a');
+    deleteLink.href = '#';
+    deleteLink.textContent = 'Delete';
+    deleteLink.style.color = 'black';
+    deleteLink.style.textDecoration = 'none';
+    deleteLink.addEventListener('click', (event) => deleteAddress(addressData.id, event));
+
+    // Assemble the elements
+    optionsContainer.appendChild(editLink);
+    optionsContainer.appendChild(deleteSpan);
+    optionsContainer.appendChild(deleteLink);
+
+    actions.appendChild(optionsIcon);
+    actions.appendChild(optionsContainer);
+
+    addressType.appendChild(input);
+    addressType.appendChild(document.createTextNode(`${addressData.address_type} `));
+    addressType.appendChild(actions);
+
+    label.appendChild(addressType);
+
+    // Add title based on addressData.title
+    const titleSpan = document.createElement('span');
+    titleSpan.className = 'title';
+
+    if (addressData.title === '1') {
+        titleSpan.textContent = 'Mr ';
+    } else if (addressData.title === '2') {
+        titleSpan.textContent = 'Mrs ';
+    } else if (addressData.title === '3') {
+        titleSpan.textContent = 'Miss ';
     }
 
-    function updateAddress(addressId) {
-    // Make an AJAX request to update the address details
-    console.log("Update Address", addressId);
-    fetch('/update_address/' + addressId , {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-            edit_mode: true,  // Set edit_mode to true
-            title: document.getElementById('title').value,
-            receiver_name: document.getElementById('receiver_name').value,
-            delivery_address: document.getElementById('delivery_address').value,
-            address_type: document.getElementById('selectedOption').value,
-        }),
-    })
+    label.appendChild(titleSpan);
+
+    // Add receiver_name and delivery_address
+    const receiverNameSpan = document.createElement('span');
+    receiverNameSpan.className = 'receiver-name';
+    receiverNameSpan.textContent = addressData.receiver_name;
+
+    const deliveryAddressSpan = document.createElement('span');
+    deliveryAddressSpan.className = 'delivery-address';
+    deliveryAddressSpan.textContent = addressData.delivery_address;
+
+    label.appendChild(receiverNameSpan);
+    label.appendChild(document.createElement('br'));
+    label.appendChild(deliveryAddressSpan);
+
+    addressItem.appendChild(label);
+
+    // Append the address item to the container
+    addressListContainer.appendChild(addressItem);
+    input.checked = true;
+
+}
+
+function editAddress(addressId) {
+    // Fetch address details using AJAX
+    fetch(`/get_address_details/${addressId}`)
         .then(response => response.json())
         .then(data => {
-            // Handle success, you might want to update the UI accordingly
+            if (data.success) {
+                // Populate the form in updateAddressModal with fetched details
+                populateUpdateAddressForm(data.address_details,addressId);
+
+                // Show the updateAddressModal
+                $('#updateAddressModal').modal('show');
+            } else {
+                console.error('Failed to fetch address details:', data.message);
+            }
+        })
+        .catch(error => console.error('Error fetching address details:', error));
+}
+function populateUpdateAddressForm(addressDetails,addressId) {
+    // Update the form elements with the fetched details
+    document.getElementById('title1').value = addressDetails.title;
+    document.getElementById('receiver_name1').value = addressDetails.receiver_name;
+    document.getElementById('delivery_address1').value = addressDetails.delivery_address;
+    document.getElementById('address_id').value=addressId;
+    console.log(addressDetails.address_type)
+     // Assuming 'selectedOption1' is the correct id
+    // document.getElementById('selectedOption1').value=addressDetails.address_type
+    // document.getElementById('selectedOption1').checked = true;
+    // document.getElementById('selectedOption1').parentNode.classList.add('selected');
+
+    // console.log(document.getElementById('selectedOption1').value);// Assuming 'selectedOption' is the correct id
+    const selectedOption1 = document.getElementById('selectedOption1');
+    selectedOption1.value = addressDetails.address_type;
+
+   
+// Set the initial state programmatically
+selectedOption1.checked = true;
+
+// Remove the 'checked' attribute
+selectedOption1.removeAttribute('checked');
+
+// Add the 'selected' class to style the label
+selectedOption1.closest('label').classList.add('selected');
+
+}
+
+    // function editAddress(addressId) {
+    //     // Make an AJAX request to get the address details
+    //     console.log(addressId);
+    //     fetch('/edit_address/' + addressId)
+    //         .then(response => {
+    //             console.log('Response status:', response.status);
+    //             return response.json();
+    //         })
+    //         .then(data => {
+    //             console.log('Data received:', data);
+    //             // Populate the addAddressModal with the fetched address details
+    //             document.getElementById('title').value = data.title;
+    //             document.getElementById('receiver_name').value = data.receiver_name;
+    //             document.getElementById('delivery_address').value = data.delivery_address;
+    //             console.log(data.address_type)
+    //             document.getElementById('selectedOption').value = data.address_type;
+                
+    //             // Set the value of edit_mode to true
+    //             document.getElementById('editModeField').value = 'true';
+    //             console.log("***");
+                
+               
+    //             // Change the form action to /update_address
+    //             document.getElementById('submitBtn').innerText = 'Update Address';
+    //             document.querySelector('form').action = '/update_address/' + addressId;
+
+    //             // Show the modal
+    //             $('#addAddressModal').modal('show');
+    //             // Set the value of edit_mode to false
+               
+
+                
+
+    //         })
+    //         .catch(error => console.error('Error:', error));
+    // }
+
+//     function updateAddress(addressId) {
+//     // Make an AJAX request to update the address details
+//     console.log("Update Address", addressId);
+//     fetch('/update_address/' + addressId , {
+//         method: 'POST',
+//         headers: {
+//             'Content-Type': 'application/json',
+//         },
+//         body: JSON.stringify({
+//             edit_mode: true,  // Set edit_mode to true
+//             title: document.getElementById('title').value,
+//             receiver_name: document.getElementById('receiver_name').value,
+//             delivery_address: document.getElementById('delivery_address').value,
+//             address_type: document.getElementById('selectedOption').value,
+//         }),
+//     })
+//         .then(response => response.json())
+//         .then(data => {
+//             // Handle success, you might want to update the UI accordingly
             
-            console.log(data.message);
-            document.getElementById('editModeField').value = 'false';
+//             console.log(data.message);
+//             document.getElementById('editModeField').value = 'false';
 
            
-                // Redirect to the cart page
-            showMessageBox("Address is Updated!");
+//                 // Redirect to the cart page
+//             showMessageBox("Address is Updated!");
             
             
             
 
-            // Change the form action to /update_address
-            document.getElementById('submitBtn').innerText = 'Save Address';
-            document.querySelector('form').action = '/save_address';
-            showMessageBox("Address is Updated!");
-            $('#addressModal').modal('show');
-        })
-        .catch(error => console.error('Error Catched:', error));
+//             // Change the form action to /update_address
+//             document.getElementById('submitBtn').innerText = 'Save Address';
+//             document.querySelector('form').action = '/save_address';
+//             showMessageBox("Address is Updated!");
+//             $('#addressModal').modal('show');
+//         })
+//         .catch(error => console.error('Error Catched:', error));
+// }
+document.getElementById('updateAddressForm').addEventListener('submit', async function (event) {
+    event.preventDefault();
+
+    const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+
+    const formData = new FormData(this);
+    const addressId = document.getElementById("address_id").value;
+    console.log("address_id=",addressId)
+    try {
+        const response = await fetch('/update_address/' + addressId, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': csrfToken,
+            },
+            body: formData,
+        });
+
+        if (response.ok) {
+            // Handle success (e.g., display a success message)
+            console.log('Address saved successfully!');
+
+            
+            // Optionally, close the modal
+            $('#updateAddressModal').modal('hide');
+
+            fetchUpdatedAddressData(addressId);
+            $('#addressModal').modal('hide');
+        } else {
+            // Handle errors (e.g., display an error message)
+            console.error('Failed to save address.');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+    }
+});
+async function fetchUpdatedAddressData(addressId) {
+    try {
+        
+        const response = await fetch('/get_all_addresses', {
+            method: 'GET',
+        });
+        if (response.ok) {
+            const data = await response.json();
+            if (data.success) {
+                // Assuming you have a function to update the modal
+                updateAddressesAfterEditing(data.address_details,addressId);
+                // Show the modal with updated data
+                $('#addressModal').modal('show');
+            } else {
+                console.error('Failed to fetch updated address details:', data.message);
+            }
+        } else {
+            console.error('Failed to fetch updated address details.');
+        }
+    } catch (error) {
+        console.error('Error fetching updated address details:', error);
+    }
 }
+// Function to update the UI with addresses
+function updateAddressesAfterEditing(addressesData,addressId) {
+    // Example: Update the address list container
+    const addressListContainer = document.querySelector('.address-list');
+    addressListContainer.innerHTML = '';  // Clear previous content
+
+    addressesData.forEach(address => {
+        const addressItem = document.createElement('div');
+        addressItem.className = 'form-check address-item';
+        addressItem.id = `address${address.id}`;
+
+        const label = document.createElement('label');
+        label.className = 'form-check-label';
+        label.htmlFor = `address${address.id}`;
+
+        const addressType = document.createElement('span');
+        addressType.className = 'address-type';
+
+        const input = document.createElement('input');
+        input.className = 'form-check-input';
+        input.type = 'radio';
+        input.name = 'existingAddress';
+        input.id = `address${address.id}`;
+        input.value = address.id;
+        input.addEventListener('change', () => updateSelectedAddress(address.id));
+        
+        if (`${address.id}` === addressId) {
+           
+            input.checked = true;  // Check the radio button for the specified addressId
+        }
+      
+        const actions = document.createElement('span');
+        actions.className = 'actions';
+
+        const optionsIcon = document.createElement('span');
+        optionsIcon.textContent = '...';
+        optionsIcon.style.marginLeft = '290px';
+        optionsIcon.style.fontSize = '25px';
+        optionsIcon.addEventListener('click', () => showOptions(address.id));
+
+        const optionsContainer = document.createElement('div');
+        optionsContainer.id = `options${address.id}`;
+        optionsContainer.className = 'options';
+        optionsContainer.style.display = 'none';
+        optionsContainer.style.marginLeft = '210px';
+        optionsContainer.style.color = 'black';
+
+        const editLink = document.createElement('a');
+        editLink.href = '#';
+        editLink.textContent = 'Edit';
+        editLink.style.color = 'black';
+        editLink.style.textDecoration = 'none';
+        editLink.addEventListener('click', (event) => editAddress(address.id, event));
+
+        const deleteSpan = document.createElement('span');
+        deleteSpan.textContent = ' | ';
+
+        const deleteLink = document.createElement('a');
+        deleteLink.href = '#';
+        deleteLink.textContent = 'Delete';
+        deleteLink.style.color = 'black';
+        deleteLink.style.textDecoration = 'none';
+        deleteLink.addEventListener('click', (event) => deleteAddress(address.id, event));
+
+        // Assemble the elements
+        optionsContainer.appendChild(editLink);
+        optionsContainer.appendChild(deleteSpan);
+        optionsContainer.appendChild(deleteLink);
+
+        actions.appendChild(optionsIcon);
+        actions.appendChild(optionsContainer);
+
+        addressType.appendChild(input);
+        addressType.appendChild(document.createTextNode(`${address.address_type} `));
+        addressType.appendChild(actions);
+
+        label.appendChild(addressType);
+
+        // Add title based on address.title
+        const titleSpan = document.createElement('span');
+        titleSpan.className = 'title';
+
+        if (address.title === '1') {
+            titleSpan.textContent = 'Mr.';
+        } else if (address.title === '2') {
+            titleSpan.textContent = 'Mrs.';
+        } else if (address.title === '3') {
+            titleSpan.textContent = 'Miss';
+        }
+
+        label.appendChild(titleSpan);
+
+        // Add receiver_name and delivery_address
+        const receiverNameSpan = document.createElement('span');
+        receiverNameSpan.className = 'receiver-name';
+        receiverNameSpan.textContent = address.receiver_name;
+
+        const deliveryAddressSpan = document.createElement('span');
+        deliveryAddressSpan.className = 'delivery-address';
+        deliveryAddressSpan.textContent = address.delivery_address;
+
+        label.appendChild(receiverNameSpan);
+        label.appendChild(document.createElement('br'));
+        label.appendChild(deliveryAddressSpan);
+
+        addressItem.appendChild(label);
+
+        // Append the address item to the container
+        addressListContainer.appendChild(addressItem);
+       
+
+    });
+}
+// function updateAddress(addressId) {
+//     // Make an AJAX request to update the address details
+//     console.log("Update Address", addressId);
+//     const formData = new FormData(document.querySelector('updateAddressForm'));
+
+//     fetch('/update_address/' + addressId, {
+//         method: 'POST',
+//         body: formData,
+//     })
+//     .then(response => response.json())
+//     .then(data => {
+//         // Handle success, you might want to update the UI accordingly
+//         console.log(data.message);
+
+//         // Set the value of edit_mode to false
+        
+//         // Redirect to the cart page
+//         showMessageBox("Address is Updated!");
+
+//         // Change the form action to /save_address
+        
+
+//         // Show the modal
+//         $('#addressModal').modal('show');
+//     })
+//     .catch(error => console.error('Error:', error));
+// }
+
 function deleteAddress(addressId) {
     // Make an AJAX request to delete the address
     event.preventDefault();
-    fetch('/delete_address/' + addressId, { method: 'GET' })
+    const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+
+    fetch('/delete_address/' + addressId, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrfToken,
+        },
+    })
         .then(response => response.json())
         .then(data => {
             // Handle success or error response
-            
             console.log(data.message || data.error);
             if (data.success) {
-                // Handle success, e.g., remove the card or update the view
-                // You can add additional logic based on your requirements
-                //location.reload();
+                // Remove the deleted address from the view
+                const deletedAddress = document.getElementById('address' + addressId);
+                if (deletedAddress) {
+                    deletedAddress.remove();
+                }
+
                 showMessageBox("Address Deleted Successfully");
-                setTimeout(function () {
-                    location.reload();
-                }, 2000);
                 $('#addressModal').modal('show');
             } else {
                 showMessageBox('Error deleting address: ' + data.message);
@@ -802,24 +1455,6 @@ function deleteAddress(addressId) {
         .catch(error => console.error('Error:', error));
 }
 
-function clearFormFields() {
-        // Clear the form fields when the modal is shown
-        
-        // document.getElementById('selectedOption').value = 'Home'; // Assuming 'Home' is the default value
-    document.getElementById('title').value = '';
-    document.getElementById('receiver_name').value = '';
-    document.getElementById('delivery_address').value = '';
-    document.getElementById('title').placeholder = 'Title';
-
-    // Reset the form action and button text
-    document.getElementById('editModeField').value = 'false';
-    document.getElementById('submitBtn').innerText = 'Save Address';
-    document.querySelector('form').action = '/save_address';
-}  
-
-$('#addAddressModal').on('hidden.bs.modal', function () {
-    clearFormFields();
-});
 
 function showMessageBox(message) {
     var messageBox = document.createElement('div');

@@ -3,6 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Portfolio &mdash; Agriculture Website</title>
     <!-- Link Swiper's CSS -->
     <link
@@ -49,12 +50,13 @@
             <label for="search-box" class="fas fa-search"></label>
           </form>
         </div>
-        <div class="shopping-cart">
+        <div class="shopping-cart" style="position: fixed;
+        margin-top: 15px;">
           {% if current_user.is_authenticated %}
               {% if cart_items %}
                   {% for cart_item,item,category in cart_items %}
-                      <div class="box">
-                        <a href="/delete_from_cart/{{ cart_item.item_id }}">
+                      <div class="box" data-item-id="{{ cart_item.item_id }}">
+                        <a href="#" class="delete-from-cart">
                           <i class="fas fa-times"></i>
                         </a>
                         
@@ -68,7 +70,7 @@
                       </div>
                   {% endfor %}
                   <h3 class="total">Total: <span>₹{{ total_price }}</span></h3>
-                  <a href="/cart" class="btn">Checkout Cart</a>
+                  <a href="/cart" class="btn" style="font-size: 1.5rem;">Checkout Cart</a>
               {% else %}
                   <p>Your cart is empty.</p>
               {% endif %}
@@ -76,7 +78,6 @@
               <p>Please log in to view your cart.</p>
           {% endif %}
       </div>
-      
         <form method="POST" action="user_login"  class="login-form">
           <input type="hidden" name="next" value="{{ request.args.get('next') }}">
           {% if current_user.is_authenticated %}
@@ -217,7 +218,82 @@
             $('#flashMessage').alert('close');
         }, 2000);
 
+        $(document).ready(function () {
+      $('.shopping-cart').on('click', '.delete-from-cart', function (e) {
+        
+        e.preventDefault();
 
+        // Get the item id from the data attribute
+        var itemId = $(this).closest('.box').data('item-id');
+        
+        var csrfToken = $('meta[name=csrf-token]').attr('content');
+
+        // Include CSRF token in AJAX request headers
+        $.ajax({
+            type: 'POST',
+            url: '/delete_from_cart/' + itemId,
+            data: {csrf_token: csrfToken},  // Include CSRF token in the data
+            success: function (response) {
+                
+                // Update the cart content on the page
+                updateCartContent();
+            },
+            error: function (xhr, status, error) {
+                console.error('AJAX error:', status, error);
+                console.log(xhr.responseText); // Log the response text for more details
+            }
+        });
+    });
+
+    function updateCartContent() {
+        // Use AJAX to fetch the updated cart content from the server
+        $.ajax({
+            type: 'GET',
+            url: '/get_cart_content',
+            success: function (cartContent) {
+                // Update the cart section in your HTML with the new content
+                $('.shopping-cart').empty();
+                if (cartContent.length === 0) {
+                  $('.shopping-cart').append('<p>Your cart is empty.</p>');
+            } else {
+                // Iterate through the cart items and append them to the cart section
+                for (var i = 0; i < cartContent.length; i++) {
+                    var cartItem = cartContent[i];
+                    console.log("Hi deleted:", cartItem.item_id);
+                    var cartItemHtml = '<div class="box" data-item-id="' + cartItem.item_id + '">' +
+                        '<a href="#" class="delete-from-cart">' +
+                        '<i class="fas fa-times"></i>' +
+                        '</a>' +
+                        '<img class="imi" src="static/images/items/' + cartItem.name.replace(/\s+/g, '_').toLowerCase() + '.png" alt="' + cartItem.name + '">' +
+                        '<div class="content">' +
+                        '<h3>' + cartItem.name + '</h3>' +
+                        '<span class="quantity">' + cartItem.quantity + '</span>' +
+                        '<span class="multiply">x</span>' +
+                        '<span class="price">₹' + cartItem.price + '</span>' +
+                        '</div>' +
+                        '</div>';
+                    
+                    $('.shopping-cart').append(cartItemHtml);
+                }
+
+                // Add total price and checkout button (modify as needed)
+                $('.shopping-cart').append('<h3 class="total">Total: <span>₹' + getTotalPrice(cartContent) + '</span></h3>');
+                $('.shopping-cart').append('<a href="/cart" class="btn">Checkout Cart</a>');
+              }
+            },
+            error: function (jqXHR, textStatus, errorThrown) {
+                console.error('Error fetching cart content:', textStatus, errorThrown);
+            }
+        });
+    }
+    function getTotalPrice(cartContent) {
+    var total = 0;
+    for (var i = 0; i < cartContent.length; i++) {
+        total += cartContent[i].price * cartContent[i].quantity;
+    }
+    return total.toFixed(2);
+}
+  })
     
   </script>
   </body>
