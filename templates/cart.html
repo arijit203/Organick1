@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
+    <link rel="icon"  href="static/images/favicon.png">
     <title>Cart</title>
     <!-- Bootstrap CSS -->
     
@@ -987,7 +988,10 @@ document.getElementById('addAddressForm').addEventListener('submit', async funct
 
             // Update the UI with the saved address
             updateAddressesUI(addressData.address);
+            updateSelectedAddress(addressData.id); 
             $('#addressModal').modal('show');
+            // Clear the form data
+            this.reset();
         } else {
             // Handle errors (e.g., display an error message)
             console.error('Failed to save address.');
@@ -1101,7 +1105,7 @@ function updateAddressesUI(addressData) {
     // Append the address item to the container
     addressListContainer.appendChild(addressItem);
     input.checked = true;
-
+    
 }
 
 function editAddress(addressId) {
@@ -1310,7 +1314,8 @@ function updateAddressesAfterEditing(addressesData,addressId) {
         
         if (`${address.id}` === addressId) {
            
-            input.checked = true;  // Check the radio button for the specified addressId
+            input.checked = true;
+            updateSelectedAddress(addressId);  // Check the radio button for the specified addressId
         }
       
         const actions = document.createElement('span');
@@ -1391,7 +1396,7 @@ function updateAddressesAfterEditing(addressesData,addressId) {
 
         // Append the address item to the container
         addressListContainer.appendChild(addressItem);
-       
+        
 
     });
 }
@@ -1479,6 +1484,7 @@ function showMessageBox(message) {
     }, 1000);
 }     
 function updateSelectedAddress(addressId) {
+    console.log("updated");
     document.getElementById('selectedAddress').value = addressId;
 }
 

@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon"  href="static/images/favicon.png">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Register</title>
     <!-- Bootstrap CSS -->
@@ -326,6 +327,7 @@
                             const otp3 = document.getElementById('otp3').value;
                             const otp4 = document.getElementById('otp4').value;
                             const enteredOTP = otp1 + otp2 + otp3 + otp4;
+                            
                             if (enteredOTP == otp_val) {
                                 alert("Email address verified...");
                                 emailVerifiedInput.value = "true";
