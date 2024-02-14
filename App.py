@@ -37,6 +37,7 @@ from flask_login import UserMixin, login_user,LoginManager, login_required, logo
 
 
 app=Flask(__name__)
+# app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(os.path.abspath(os.path.dirname(__file__)), 'grocery.db')
 
 app.config['SQLALCHEMY_DATABASE_URI']='sqlite:///C:/Users/ariji/Desktop/GROC/instance/grocery.db'
 app.config['SECRET_KEY']="my secret key"
@@ -460,7 +461,7 @@ def check_availability():
         if item is not None:
             # Check if the available quantity is sufficient
             if item.quantity < quantity:
-                all_available = str(quantity) + item.unit.split('/')[1] + " not available in Store. Only up to " + str(item.quantity) + item.unit.split('/')[1] + " available"                
+                all_available = str(quantity) + item.unit.split('/')[1] +" of " + item.name + " not available in store. Only up to " + str(item.quantity) + item.unit.split('/')[1] + " Available"                
                 break
         else:
             # Item not found in the database
@@ -1158,7 +1159,11 @@ def order_details(order_id):
             if(item.unit=='kg'):
                 item.unit='1Kg'
             elif(item.unit=='L'):
-                item.unit='1L'   
+                item.unit='1L' 
+
+            elif(item.unit=='unit'):
+                item.unit='1unit' 
+
         # Convert data to JSON
         MRP=0
         discountCode=order.promoCode
@@ -1619,11 +1624,11 @@ def delete_category(name,category_id):
 
 
 
+app.run(debug=True)
 
+# # Set the port from the environment variable, default to 10000
+# port = int(os.environ.get('PORT', 10000))
 
-# Set the port from the environment variable, default to 10000
-port = int(os.environ.get('PORT', 10000))
-
-if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=port)
+# if __name__ == '__main__':
+#     app.run(host='0.0.0.0', port=port)
 

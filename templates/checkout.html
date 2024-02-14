@@ -380,48 +380,136 @@ font-weight: 500;
 </div>
 </div>
 
+<script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
 
 <script>
-document.addEventListener("DOMContentLoaded", function () {
-function submitPayment(event, addressId) {
-        event.preventDefault();
-
-        // Get the selected payment option
-        var selectedPaymentOption = document.querySelector('.payment-option-wrapper.active');
-        var selectedPaymentOptionValue = selectedPaymentOption ? selectedPaymentOption.getAttribute('value') : '';
-
-        // Get the total price
-        var totalAmountElement = document.getElementById('Purchase_Amount');
-        var totalAmountText = totalAmountElement.innerText.trim();
-        var totalAmountValue = parseFloat(totalAmountText.replace('₹', ''));
-        var couponCode=document.getElementById('coupon').innerText;
-
-        addressId = parseInt(addressId);
-        console.log(selectedPaymentOptionValue + " " + totalAmountValue + " " + addressId);
-
-        // Set the values in the hidden fields with specific IDs
-        document.getElementById("addressId").value = addressId;
-        document.getElementById("totalAmount").value = totalAmountValue;
-        document.getElementById("mode_of_payment").value = selectedPaymentOptionValue;
-        document.getElementById('promo_code').value=couponCode
-
-
-        console.log(document.getElementById("addressId").value);
-
-        // Submit the form
-        const paymentForm = document.getElementById("paymentForm");
-        console.log(paymentForm); 
-        if (paymentForm) {
+//      $(document).ready(function () {
            
-            paymentForm.submit();
+//            $('#proceedToCheckoutBtn').click(function() {
+//        // Make an Ajax request to check item availability
+//        $.ajax({
+//            type: 'GET',
+//            url: '/check_availability',
+//             // Provide your cart items data
+//            success: function(response) {
+//                if (response.allAvailable=='True') {
+//                    // If all items are available, show the modal
+                  
+//                    $('#addressModal').modal('show');
+                  
+//                } else {
+//                    // If not all items are available, handle it (e.g., show a message)
+//                    showMessageBox(response.allAvailable)
+//                     // Disable the button
+                  
+//                }
+//            },
+//            error: function() {
+//                // Handle the error
+//                alert('Error checking item availability.');
+//            }
+//        });
+//    });
+// })
+// document.addEventListener("DOMContentLoaded", function () {
+// function submitPayment(event, addressId) {
+//         event.preventDefault();
+
+//         // Get the selected payment option
+//         var selectedPaymentOption = document.querySelector('.payment-option-wrapper.active');
+//         var selectedPaymentOptionValue = selectedPaymentOption ? selectedPaymentOption.getAttribute('value') : '';
+
+//         // Get the total price
+//         var totalAmountElement = document.getElementById('Purchase_Amount');
+//         var totalAmountText = totalAmountElement.innerText.trim();
+//         var totalAmountValue = parseFloat(totalAmountText.replace('₹', ''));
+//         var couponCode=document.getElementById('coupon').innerText;
+
+//         addressId = parseInt(addressId);
+//         console.log(selectedPaymentOptionValue + " " + totalAmountValue + " " + addressId);
+
+//         // Set the values in the hidden fields with specific IDs
+//         document.getElementById("addressId").value = addressId;
+//         document.getElementById("totalAmount").value = totalAmountValue;
+//         document.getElementById("mode_of_payment").value = selectedPaymentOptionValue;
+//         document.getElementById('promo_code').value=couponCode
+
+
+//         console.log(document.getElementById("addressId").value);
+
+//         // Submit the form
+//         const paymentForm = document.getElementById("paymentForm");
+//         console.log(paymentForm); 
+//         if (paymentForm) {
+           
+//             paymentForm.submit();
 
            
-        } else {
-            console.error("paymentForm element not found in the DOM");
-        }
+//         } else {
+//             console.error("paymentForm element not found in the DOM");
+//         }
        
         
+//     }
+
+document.addEventListener("DOMContentLoaded", function () {
+
+function submitPayment(event, addressId) {
+    event.preventDefault();
+
+    // Perform AJAX request to check item availability
+    $.ajax({
+        type: 'GET',
+        url: '/check_availability',
+        success: function (response) {
+            if (response.allAvailable === 'True') {
+                // If all items are available, proceed with payment
+                handlePaymentSubmission(addressId);
+            } else {
+                // If not all items are available, handle it (e.g., show a message)
+                showMessageBox(response.allAvailable);
+                // You might want to disable the button here if needed
+            }
+        },
+        error: function () {
+            // Handle the error
+            alert('Error checking item availability.');
+        }
+    });
+}
+
+function handlePaymentSubmission(addressId) {
+    // Get the selected payment option
+    var selectedPaymentOption = document.querySelector('.payment-option-wrapper.active');
+    var selectedPaymentOptionValue = selectedPaymentOption ? selectedPaymentOption.getAttribute('value') : '';
+
+    // Get the total price
+    var totalAmountElement = document.getElementById('Purchase_Amount');
+    var totalAmountText = totalAmountElement.innerText.trim();
+    var totalAmountValue = parseFloat(totalAmountText.replace('₹', ''));
+    var couponCode = document.getElementById('coupon').innerText;
+
+    addressId = parseInt(addressId);
+    console.log(selectedPaymentOptionValue + " " + totalAmountValue + " " + addressId);
+
+    // Set the values in the hidden fields with specific IDs
+    document.getElementById("addressId").value = addressId;
+    document.getElementById("totalAmount").value = totalAmountValue;
+    document.getElementById("mode_of_payment").value = selectedPaymentOptionValue;
+    document.getElementById('promo_code').value = couponCode;
+
+    console.log(document.getElementById("addressId").value);
+
+    // Submit the form
+    const paymentForm = document.getElementById("paymentForm");
+    console.log(paymentForm);
+    if (paymentForm) {
+        paymentForm.submit();
+    } else {
+        console.error("paymentForm element not found in the DOM");
     }
+}
+
     
     document.getElementById("payNowButton").addEventListener("click", function (event) {
         event.preventDefault();

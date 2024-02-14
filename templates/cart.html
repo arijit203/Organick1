@@ -988,7 +988,7 @@ document.getElementById('addAddressForm').addEventListener('submit', async funct
 
             // Update the UI with the saved address
             updateAddressesUI(addressData.address);
-            updateSelectedAddress(addressData.id); 
+            updateSelectedAddress(addressData.address.id); 
             $('#addressModal').modal('show');
             // Clear the form data
             this.reset();
@@ -1254,7 +1254,7 @@ document.getElementById('updateAddressForm').addEventListener('submit', async fu
             $('#updateAddressModal').modal('hide');
 
             fetchUpdatedAddressData(addressId);
-            $('#addressModal').modal('hide');
+            $('#addressModal').modal('show');
         } else {
             // Handle errors (e.g., display an error message)
             console.error('Failed to save address.');
@@ -1485,6 +1485,7 @@ function showMessageBox(message) {
 }     
 function updateSelectedAddress(addressId) {
     console.log("updated");
+    console.log(addressId);
     document.getElementById('selectedAddress').value = addressId;
 }
 

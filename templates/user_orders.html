@@ -90,7 +90,7 @@
               
               <h3>Welcome, {{ current_user.username }}!</h3>
               <!-- Display other user information as needed -->
-              <a href="{{ url_for('user_orders') }}" class="btn1">Your Orders</a>
+              <a href="{{ url_for('user_orders') }}" class="btn1 btn-your-orders" style="color: black;">Your Orders</a>
               <a href="{{ url_for('user_logout') }}" class="btn">Logout</a>
           {% else %}
               {{ form.csrf_token }}
