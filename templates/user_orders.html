@@ -202,7 +202,7 @@
                                                 <div class="label">Product Discount(<span id="discountCode"></span>)
                                                     
                                                 </div>
-                                                <div  id="discountValue">-₹</div></span>
+                                                <div  id="discountValue" style="margin-right:-157%">-₹</div></span>
                                                 
                                             </div>
                                             <div class="bill-details-row">
@@ -374,7 +374,7 @@
                     )
 
                     if (data.discountCode.length != 0) {
-                        $('#discountDetails').css('display', 'block');
+                        $('#discountDetails').css('display', 'inline-flex');
                         $('#discountCode').html(
                             '×'+data.discountCode
                         )
@@ -401,7 +401,7 @@
                         data.Address
                     )
                     $('#deliveryDate').html(
-                        "Placed On" + data.formatted_order_date
+                        "Placed On " + data.formatted_order_date
                     )
 
                                     

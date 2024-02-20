@@ -38,8 +38,7 @@ from flask_login import UserMixin, login_user,LoginManager, login_required, logo
 
 app=Flask(__name__)
 # app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(os.path.abspath(os.path.dirname(__file__)), 'grocery.db')
-
-app.config['SQLALCHEMY_DATABASE_URI']='sqlite:///C:/Users/ariji/Desktop/GROC/instance/grocery.db'
+app.config['SQLALCHEMY_DATABASE_URI']='sqlite:///C:/Users/USER/Desktop/GROC/instance/grocery.db'
 app.config['SECRET_KEY']="my secret key"
 
 db=SQLAlchemy(app)
