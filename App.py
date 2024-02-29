@@ -1153,7 +1153,7 @@ def order_details(order_id):
         # Fetch items for the order
         items = User_buy.query.filter_by(order_id=order_id).all()
         for item in items:
-            item.image_url = f'/static/images/items/{item.item_name.replace(" ", "_").lower()}.png'
+            item.image_url = f'/static/images/items/{item.item_name.replace(" ", "_")}.png'
             order_item=Order_items.query.filter_by(name=item.item_name).first()
             item.unit=order_item.unit.split('/')[1]
             if(item.unit=='kg'):
