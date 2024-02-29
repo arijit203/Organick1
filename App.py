@@ -1363,7 +1363,7 @@ def summary(name):
         plt.xlabel('Category', fontsize=12)
         plt.ylabel('Total Quantity', fontsize=12)
         plt.title('Category-wise Utilization', fontsize=14)
-        plt.xticks(rotation=45, fontsize=10)
+        plt.xticks( fontsize=10)
         plt.yticks(fontsize=10)
         
         plt.tight_layout()
@@ -1383,7 +1383,7 @@ def summary(name):
         plt.xlabel("Item Name", fontsize=12)
         plt.ylabel("Quantity Purchased", fontsize=12)
         plt.title("Summary of Items Purchased", fontsize=14)
-        plt.xticks(rotation=45, fontsize=10)
+        plt.xticks(rotation=90, fontsize=10)
         plt.yticks(fontsize=10)
         plt.tight_layout()
         
@@ -1623,11 +1623,11 @@ def delete_category(name,category_id):
 
 
 
-app.run(debug=True)
+# app.run(debug=True)
 
-# # Set the port from the environment variable, default to 10000
-# port = int(os.environ.get('PORT', 10000))
+# Set the port from the environment variable, default to 10000
+port = int(os.environ.get('PORT', 10000))
 
-# if __name__ == '__main__':
-#     app.run(host='0.0.0.0', port=port)
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=port)
 
