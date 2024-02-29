@@ -145,7 +145,7 @@
                                     <div class="col">
                                         
                                         <div class="card">
-                                            <img src="static/images/items/{{ item.name|replace(' ', '_')|lower }}.png" class="card-img-top restricted-image" alt="{{ item.item_name }}">
+                                            <img src="static/images/items/{{ item.name|replace(' ', '_')}}.png" class="card-img-top restricted-image" alt="{{ item.item_name }}">
                                             <div class="card-body">
                                                 <h5 class="card-title">{{ item.name }}</h5>
                                                 <p class="card-text">Price: Rs. {{ item.price }} per  {{item.unit.split('/')[1]}} </p>
@@ -165,7 +165,7 @@
                                                 data-item-name="{{ item.name }}"
                                                 data-item-quantity="{{ cart_item.quantity }}"
                                                 data-item-price="{{ item.price }}"
-                                                data-item-image="static/images/items/{{ item.name|replace(' ', '_')|lower }}.png"
+                                                data-item-image="static/images/items/{{ item.name|replace(' ', '_')}}.png"
                                                 data-item-unit="{{item.unit.split('/')[1]}}"
                                                 style="font-size: 1.2rem;"
                                                 >
