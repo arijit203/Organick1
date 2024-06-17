@@ -1330,16 +1330,13 @@ def manager_dashboard(name):
 @app.route('/<name>/summary')
 @manager_access_required
 def summary(name):
-
     if is_manager(name):
-        categories=Category.query.all()
+        categories = Category.query.all()
         user_buys = User_buy.query.all()
 
         # Process data for the first graph (category-wise utilization)
-        category_utilization = {}
-        for category in categories:
-            category_utilization[category.category_name]=0
-        
+        category_utilization = {category.category_name: 0 for category in categories}
+
         for buy in user_buys:
             if buy.category_name in category_utilization:
                 category_utilization[buy.category_name] += buy.quantity
@@ -1351,78 +1348,47 @@ def summary(name):
         price_ranges = [0, 10, 20, 30, 40, 50, 100, 200, 500, 1000]
         products_in_ranges = [0] * (len(price_ranges) - 1)
         for buy in user_buys:
-            
             for i in range(len(price_ranges) - 1):
                 if price_ranges[i] < buy.price <= price_ranges[i + 1]:
                     products_in_ranges[i] += 1
                     break
 
         # Plot the first graph (category-wise utilization)
-        plt.figure(figsize=(8, 7))
+        plt.figure(figsize=(10, 7))
         bar_width = 0.5
-        bar_height = 0.2
         plt.bar(category_utilization.keys(), category_utilization.values(), width=bar_width)
         plt.xlabel('Category', fontsize=12)
         plt.ylabel('Total Quantity', fontsize=12)
         plt.title('Category-wise Utilization', fontsize=14)
-        plt.xticks( fontsize=10)
+        plt.xticks(fontsize=10)
         plt.yticks(fontsize=10)
-        
         plt.tight_layout()
         plt.savefig('./static/images/category_utilization.png')
         plt.close()
 
-        # Plot the second graph (range of products bought in the present week)
-        
+        # Plot the second graph (summary of items purchased)
         data = db.session.query(User_buy.item_name, db.func.sum(User_buy.quantity)).group_by(User_buy.item_name).all()
-        
-        # Unzip the data for plotting
-        item_names, quantities = zip(*data)
-        
-        # # Plot the bar graph
-        # plt.figure(figsize=(8, 5))
-        # plt.bar(item_names, quantities, width=bar_width)
-        # plt.xlabel("Item Name", fontsize=12)
-        # plt.ylabel("Quantity Purchased", fontsize=12)
-        # plt.title("Summary of Items Purchased", fontsize=14)
-        # plt.xticks(rotation=90, fontsize=10)
-        # plt.yticks(fontsize=10)
-        # plt.tight_layout()
-        # Plot the horizontal bar graph
-        plt.figure(figsize=(8, 15))
-        plt.barh(item_names, quantities, height=bar_width+10)  # Use plt.barh for horizontal bar graph
-        plt.xlabel("Quantity Purchased", fontsize=8)
-        plt.ylabel("Item Name", fontsize=8)  # Swap x and y labels for horizontal graph
+        item_names, quantities = zip(*data) if data else ([], [])
+
+        plt.figure(figsize=(10, 8))
+        bar_height = 0.5
+        plt.barh(item_names, quantities, height=bar_height)
+        plt.ylabel("Item Name", fontsize=12)
+        plt.xlabel("Quantity Purchased", fontsize=12)
         plt.title("Summary of Items Purchased", fontsize=14)
         plt.xticks(fontsize=10)
-        plt.yticks(rotation=0, fontsize=8)
-        # Adjust the spacing at the top
-        plt.yticks(top=0.85)
-        plt.yticks(bottom=0.85)
-        # You can adjust the value based on your preference  # Set rotation to 0 for y-axis ticks
+        plt.yticks(fontsize=10)
         plt.tight_layout()
-        
-        # Save the plot to a file
-        
-        plot_path = "./static/images/summary.png"
-        plt.savefig(plot_path)
-        
-        # Close the plot to free up resources
+        plt.savefig('./static/images/summary.png')
         plt.close()
 
-        out_of_stock=[]
-        in_house=Order_items.query.all()
-        for i in in_house:
-            print(i)
-            if i.quantity==0:
-                out_of_stock.append(i.name)
+        out_of_stock = [item.name for item in Order_items.query.all() if item.quantity == 0]
 
         return render_template('summary.html', name=name, out_of_stock=out_of_stock)
     else:
         abort(403)
 
-
-
+        
 @app.route('/logout',methods=['GET','POST'])
 
 def logout():
