@@ -37,8 +37,7 @@ from flask_login import UserMixin, login_user,LoginManager, login_required, logo
 
 
 app=Flask(__name__)
-# app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(os.path.abspath(os.path.dirname(__file__)), 'grocery.db')
-# app.config['SQLALCHEMY_DATABASE_URI']='sqlite:///C:/Users/USER/Desktop/GROC/instance/grocery.db'
+
 app.config['SQLALCHEMY_DATABASE_URI']="sqlite:///"+os.path.join(os.getcwd(),"instance","grocery.db")
 app.config['SECRET_KEY']="my secret key"
 
@@ -1423,6 +1422,7 @@ def summary(name):
         abort(403)
 
 
+
 @app.route('/logout',methods=['GET','POST'])
 
 def logout():
@@ -1639,11 +1639,11 @@ def delete_category(name,category_id):
 
 
 
-app.run(debug=True)
+# app.run(debug=True)
 
 # Set the port from the environment variable, default to 10000
 
-# port = int(os.environ.get('PORT', 10000))
+port = int(os.environ.get('PORT', 10000))
 
-# if __name__ == '__main__':
-#     app.run(host='0.0.0.0', port=port)
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=port)

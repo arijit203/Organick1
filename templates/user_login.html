@@ -1,3 +1,4 @@
+//usr login
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -266,6 +267,7 @@
             let emailbody = `${otp_val}`;
            
             emailjs.send("service_qj0ybgq","template_59jyjsf",{
+                SecureToken: smtp_token,
                 To: email.value,
                 From: "organick.groc@gmail.com",
                 Subject: "Email OTP for Password Reset",
