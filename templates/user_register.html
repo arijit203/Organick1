@@ -9,8 +9,19 @@
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">    <!-- Include any additional CSS files here -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/register_component.css') }}">
-    <script src="https://smtpjs.com/v3/smtp.js"></script>
+    <!-- <script src="https://smtpjs.com/v3/smtp.js"></script> -->
     <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+    <script type="text/javascript"
+    src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js">
+</script>
+<script type="text/javascript">
+(function(){
+  emailjs.init({
+    publicKey:"5XtInxlNDLF7r0bv4",
+  });
+})();
+</script>
+
     
 </head>
 <body>
@@ -138,7 +149,7 @@
         async function verifyEmail(event) {
             event.preventDefault();
             var email = document.getElementById("formBasicEmail").value;
-            console.log(email)
+            // console.log(email)
             // Add logic to send OTP to email, e.g., through AJAX or backend API
             // For simplicity, assuming the backend returns success for a valid email
            
@@ -207,7 +218,7 @@
        
 
         function handleSignup(event) {
-            console.log("hi jesus");
+            // console.log("hi jesus");
             event.preventDefault();
             var otpContainer = document.querySelector('.otpverify');
             var otpInput = document.getElementById('otp_inp');
@@ -219,7 +230,7 @@
             if (emailVerifiedInput.value !== 'true') {
                 alert('Email not verified. Please verify your email before submitting the form.');
                 event.preventDefault(); // Prevent form submission
-                console.log("False");
+                // console.log("False");
                 return false;
             }
             // Check if passwords match
@@ -279,7 +290,7 @@
                 const email = document.getElementById('formBasicEmail');
                 const otpverify = document.getElementsByClassName('otpverify')[0];
                 const emailFormGroup = document.querySelector('.form-email');
-                console.log(email.value,"*****");
+                // console.log(email.value,"*****");
                 const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
 
                 const response = await fetch('/check_email', {
@@ -304,17 +315,20 @@
                 let otp_val =Math.floor(Math.random() * 9000) + 1000; 
                 var emailVerifiedInput = document.getElementById('emailVerified');
 
-                let emailbody = `<h2>Your OTP is </h2>${otp_val}`;
-                Email.send({
-                SecureToken : smtp_token,
-                To : email.value,
-                From : "organick.groc@gmail.com",
-                Subject : "Email OTP For Organick Registration",
-                Body : emailbody,
-                }).then(
+                let emailbody = `${otp_val}`;
+               
+
+                emailjs.send("service_qj0ybgq","template_79b6icv",{
+                
+                To: email.value,
+                From: "organick.groc@gmail.com",
+                Subject: "Email OTP for Password Reset",
+                Body: emailbody,
+            }).then(
 
                 message => {
-                    if (message === "OK") {
+                    // console.log("message: ",message);
+                    if (message.text === "OK") {
                     
                         $('#otpModal').modal('show');
                         
@@ -331,13 +345,13 @@
                             if (enteredOTP == otp_val) {
                                 alert("Email address verified...");
                                 emailVerifiedInput.value = "true";
-                                console.log("is working")
+                                // console.log("is working")
                                 $('#otpModal').modal('hide'); // Close the modal
                                 // email.disabled = true; // Disable the email field
                                 email.readOnly = true;
                                 displayVerificationTick(emailFormGroup);
                                 event.preventDefault();
-                                console.log(email.value)
+                                // console.log(email.value)
                             }
                             else {
 

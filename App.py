@@ -1217,6 +1217,8 @@ def send_email():
         msg['Subject'] = email_subject
         msg.attach(MIMEText(email_body, 'plain'))
 
+        print(email_subject," sending OTP * ")
+
         # Set up the SMTP server and send the email
         try:
             server = smtplib.SMTP('smtp.gmail.com', 587)
@@ -1357,7 +1359,7 @@ def summary(name):
                     break
 
         # Plot the first graph (category-wise utilization)
-        plt.figure(figsize=(8, 5))
+        plt.figure(figsize=(8, 7))
         bar_width = 0.5
         bar_height = 0.2
         plt.bar(category_utilization.keys(), category_utilization.values(), width=bar_width)
@@ -1378,14 +1380,27 @@ def summary(name):
         # Unzip the data for plotting
         item_names, quantities = zip(*data)
         
-        # Plot the bar graph
-        plt.figure(figsize=(8, 5))
-        plt.bar(item_names, quantities, width=bar_width)
-        plt.xlabel("Item Name", fontsize=12)
-        plt.ylabel("Quantity Purchased", fontsize=12)
+        # # Plot the bar graph
+        # plt.figure(figsize=(8, 5))
+        # plt.bar(item_names, quantities, width=bar_width)
+        # plt.xlabel("Item Name", fontsize=12)
+        # plt.ylabel("Quantity Purchased", fontsize=12)
+        # plt.title("Summary of Items Purchased", fontsize=14)
+        # plt.xticks(rotation=90, fontsize=10)
+        # plt.yticks(fontsize=10)
+        # plt.tight_layout()
+        # Plot the horizontal bar graph
+        plt.figure(figsize=(8, 15))
+        plt.barh(item_names, quantities, height=bar_width+10)  # Use plt.barh for horizontal bar graph
+        plt.xlabel("Quantity Purchased", fontsize=8)
+        plt.ylabel("Item Name", fontsize=8)  # Swap x and y labels for horizontal graph
         plt.title("Summary of Items Purchased", fontsize=14)
-        plt.xticks(rotation=90, fontsize=10)
-        plt.yticks(fontsize=10)
+        plt.xticks(fontsize=10)
+        plt.yticks(rotation=0, fontsize=8)
+        # Adjust the spacing at the top
+        plt.yticks(top=0.85)
+        plt.yticks(bottom=0.85)
+        # You can adjust the value based on your preference  # Set rotation to 0 for y-axis ticks
         plt.tight_layout()
         
         # Save the plot to a file
@@ -1624,11 +1639,11 @@ def delete_category(name,category_id):
 
 
 
-# app.run(debug=True)
+app.run(debug=True)
 
 # Set the port from the environment variable, default to 10000
-port = int(os.environ.get('PORT', 10000))
 
-if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=port)
+# port = int(os.environ.get('PORT', 10000))
 
+# if __name__ == '__main__':
+#     app.run(host='0.0.0.0', port=port)
