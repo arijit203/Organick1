@@ -1,10 +1,7 @@
 
 {
 "builds": [
-    { "src": "*.py", "use": "@vercel/python" }
-  ],
-  "redirects": [
-    { "source": "/home", "destination": "/index.py" }
-  ]  
+    { "src": "index.py", "use": "@vercel/python" }
+  ]
 
 }
